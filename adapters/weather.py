@@ -1,9 +1,9 @@
-"""jarvis-life-os · adapters/weather.py
+"""friday · adapters/weather.py
 
 Weather sense via Open-Meteo — free, keyless (nothing to leak). Fahrenheit +
 mph, WEATHER_CITY names home; a spoken place ("weather in Austin?") overrides.
 conditions() returns structured data for the HUD card; report() formats the
-sentence Jarvis speaks. An unset city SAYS what's missing, never raises there.
+sentence Friday speaks. An unset city SAYS what's missing, never raises there.
 """
 
 import re

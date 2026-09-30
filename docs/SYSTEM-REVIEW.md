@@ -43,7 +43,7 @@ everything (jobs, content, reminders, voice) live.
 | 13 | Free local models | Leo wants free/local models. Recommended stack for 16 GB: Qwen3 8B (brain), Qwen3 1.7B (router), Gemma 3 4B + Apple Vision OCR (vision), Whisper large-v3-turbo (STT), Kokoro (everyday TTS), Chatterbox (emotional TTS), nomic-embed-text (vault search), via Ollama with `OLLAMA_MAX_LOADED_MODELS=2`, `OLLAMA_KEEP_ALIVE=5m`. Personality: supportive, witty, straight-talking — original character, **no cloned real-actor voice**. |
 | 14 | VPS (Hostinger KVM 4, 2.25.89.115) | Good for always-on, background work (gateway, jobs DB, n8n, small Ollama models, embeddings); **too slow for live voice with 8B on CPU**. Ollama must **never** be exposed publicly — Tailscale only. |
 | 15 | **Built: Jobs command center v1** | `/jobs` page + cockpit Jobs card + `/api/v1/jobs/*` + 13 tests. Full unit suite 576 passed, ruff clean. See §4. |
-| 16 | Breakage found & partly fixed | Repo moved to `~/friday` this morning; launchd agents still point to `~/Jarvis Life OS` → most services crash-looping. Dashboard fixed; others pending. See §6. |
+| 16 | Breakage found & partly fixed | Repo moved to `~/friday` this morning; launchd agents still point to `~/Friday` → most services crash-looping. Dashboard fixed; others pending. See §6. |
 
 ---
 
@@ -78,7 +78,7 @@ gesture 507 · voice 155 · scripts 468 · config 192 · UI 990. Tests: 67 files
 | LiveKit (Docker) | `docker-compose.yml` | Docker not running (exit 14 loop) | **Pause**: only needed for phone voice; start on demand. |
 | Wake word + kill switch | `voice/wakeword`, `client/killswitch.py` | **Crash-looping** (old path) | **Keep** (safety); fix path. |
 | Vision — Moondream | `scripts/moondream_serve.py`, `~/.moondream-station` (1.1 GB) | **Crash-looping**; M3 too heavy, M2 fallback | **Remove**; replace with Apple Vision OCR + Gemma 3 4B (Ollama, on demand). |
-| Screen memory — Screenpipe | was launchd `com.jarvis.screenpipe` | **REMOVED 2026-09-28** (Leo): agent stopped, plist moved to `~/jarvis-snapshots/removed/`, 26 GB recordings deleted (disk free 24 → 50 GB) | Remove code in PLAN-NEXT Phase 3; replace with on-demand screen reading (Phase 5). |
+| Screen memory — Screenpipe | was launchd `com.friday.screenpipe` | **REMOVED 2026-09-28** (Leo): agent stopped, plist moved to `~/friday-snapshots/removed/`, 26 GB recordings deleted (disk free 24 → 50 GB) | Remove code in PLAN-NEXT Phase 3; replace with on-demand screen reading (Phase 5). |
 | Gesture control | `gesture/` (Swift spike) | Not running; spec'd, G0 only | **Park** — keep code, no agent. Revisit later. |
 | Content Studio (Instagram via n8n) | `integrations/content.py` | Webhooks set | **Keep if still posting**; otherwise pause. |
 | Metrics collector (hourly) | `integrations/collect.py` | **Failing** (old path) | Keep; fix path. Confirm the Metrics panel is still wanted. |
@@ -94,14 +94,14 @@ gesture 507 · voice 155 · scripts 468 · config 192 · UI 990. Tests: 67 files
 
 | Agent | Starts at login | State | Cost | Action |
 |---|---|---|---|---|
-| com.jarvis.dashboard | yes, KeepAlive | running (fixed) | ~70 MB | keep always-on |
-| com.jarvis.killswitch | yes, KeepAlive | crash loop, exit 1 | CPU churn, 61 MB log | fix path |
-| com.jarvis.voiceworker | yes, KeepAlive | crash loop, exit 1 | CPU churn | on-demand |
-| com.jarvis.livekit | yes | crash loop, exit 14 (Docker off) | CPU churn | on-demand |
-| com.jarvis.moondream | yes, KeepAlive | crash loop, exit 2 | CPU churn, 26 MB log | remove |
-| com.jarvis.screenpipe | yes, KeepAlive | running | ~1 GB RAM, 26 GB disk | pause / opt-in |
-| com.jarvis.metrics | hourly | failing | small | fix path |
-| com.jarvis.logrotate | hourly | failing | logs unbounded | fix path |
+| com.friday.dashboard | yes, KeepAlive | running (fixed) | ~70 MB | keep always-on |
+| com.friday.killswitch | yes, KeepAlive | crash loop, exit 1 | CPU churn, 61 MB log | fix path |
+| com.friday.voiceworker | yes, KeepAlive | crash loop, exit 1 | CPU churn | on-demand |
+| com.friday.livekit | yes | crash loop, exit 14 (Docker off) | CPU churn | on-demand |
+| com.friday.moondream | yes, KeepAlive | crash loop, exit 2 | CPU churn, 26 MB log | remove |
+| com.friday.screenpipe | yes, KeepAlive | running | ~1 GB RAM, 26 GB disk | pause / opt-in |
+| com.friday.metrics | hourly | failing | small | fix path |
+| com.friday.logrotate | hourly | failing | logs unbounded | fix path |
 | Ollama.app (not Friday's) | yes | idle (only a cloud model) | ~40 MB | keep; pull local models later |
 
 Four agents respawn roughly every 10 seconds all day. That is wasted CPU and the main source of
@@ -112,7 +112,7 @@ re-arm Moondream and Screenpipe — so disable those two first, per §4).
 
 ## 6. Logs & monitoring — findings
 
-- **Two log locations.** Old: `~/Jarvis Life OS/data/logs` (171 MB: killswitch 61 MB, screenpipe 43 MB,
+- **Two log locations.** Old: `~/Friday/data/logs` (171 MB: killswitch 61 MB, screenpipe 43 MB,
   dashboard 32 MB, moondream 26 MB). New: `~/Library/Application Support/Friday/logs`.
   After the path fix, archive the old folder.
 - **Nothing alerted** when the repo move broke six services. There is no crash-loop detection.

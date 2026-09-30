@@ -1,4 +1,4 @@
-"""jarvis-life-os · brain/mood.py
+"""friday · brain/mood.py
 
 Purpose: Emotion engine — persistent affect dimensions, event triggers from the
 audit/session log, a per-turn mood line injected into the system prompt.

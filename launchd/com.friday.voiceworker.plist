@@ -3,15 +3,13 @@
 <plist version="1.0">
 <dict>
 	<key>Label</key>
-	<string>com.jarvis.dashboard</string>
+	<string>com.friday.voiceworker</string>
 	<key>ProgramArguments</key>
 	<array>
 		<string>/bin/bash</string>
 		<string>-c</string>
-		<string>cd "__REPO__" &amp;&amp; exec "__UV__" run python -m integrations.server</string>
+		<string>cd "__REPO__" &amp;&amp; set -a &amp;&amp; source ./.env &amp;&amp; set +a &amp;&amp; exec "__UV__" run python -m voice.agent dev</string>
 	</array>
-	<key>WorkingDirectory</key>
-	<string>__REPO__</string>
 	<key>EnvironmentVariables</key>
 	<dict>
 		<key>PATH</key>
@@ -22,8 +20,8 @@
 	<key>KeepAlive</key>
 	<true/>
 	<key>StandardOutPath</key>
-	<string>__STATE__/logs/dashboard.log</string>
+	<string>__STATE__/logs/voiceworker.log</string>
 	<key>StandardErrorPath</key>
-	<string>__STATE__/logs/dashboard.log</string>
+	<string>__STATE__/logs/voiceworker.log</string>
 </dict>
 </plist>

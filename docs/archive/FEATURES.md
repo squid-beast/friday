@@ -3,7 +3,7 @@
 ## Voice core
 - [ ] Push-to-talk conversation (Phase 1)
 - [ ] Barge-in interruptions (Phase 1)
-- [ ] Jarvis persona, 3-sentence cap (Phase 1)
+- [ ] Friday persona, 3-sentence cap (Phase 1)
 - [ ] Wake phrase "Wake up, Daddy's home" (Phase 3)
 - [ ] ACTIVE/DORMANT session model, 120s silence timeout (Phase 3)
 

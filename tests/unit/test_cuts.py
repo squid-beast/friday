@@ -1,4 +1,4 @@
-"""jarvis-life-os · tests/unit/test_cuts.py
+"""friday · tests/unit/test_cuts.py
 
 Capture cuts (TDD — written before the cut() executor). "camera off" and
 "stop watching my screen" must flip offline flags the adapters obey, kill the

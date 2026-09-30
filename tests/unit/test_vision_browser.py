@@ -1,4 +1,4 @@
-"""jarvis-life-os · tests/unit/test_vision_browser.py
+"""friday · tests/unit/test_vision_browser.py
 
 Graph-level browser confirm gate: same interrupt invariants as ops — pause,
 resume-yes runs exactly the confirmed task, anything else never browses.

@@ -1,6 +1,6 @@
 > **2026-09-28:** the active plan is `docs/PLAN-NEXT.md` (read `docs/SYSTEM-REVIEW.md` first). This file is the original v2 build doc.
 
-# JARVIS Life OS — Phased Implementation Plan v2 (Claude Code Build Doc)
+# FRIDAY — Phased Implementation Plan v2 (Claude Code Build Doc)
 
 > **How to use:** Project home is `/Users/lohithkumar/langgraph` (git removed; upstream LangGraph source preserved under `reference/langgraph-src/` for studying internals — never import from it, always pip-install langgraph). Rename this file to `PLAN.md` at the folder root. Work ONE phase per Claude Code session: "Read PLAN.md and implement Phase N. Do not start the next phase." Every session ends by running `/wrap` (defined in Phase 1) so project memory stays current. `[LOHITH INPUT]` = things only you can provide.
 
@@ -15,26 +15,26 @@
 | STT / TTS | Deepgram Nova / Cartesia (ElevenLabs fallback) |
 | Voice runtime | LiveKit server + Agents, both local |
 | Wake phrase | "Wake up, Daddy's home" · Kill phrase: "Stand down" |
-| Persona | Full Jarvis roleplay — "sir", dry British wit; spoken replies ≤3 sentences unless asked to elaborate |
+| Persona | Full Friday roleplay — "sir", dry British wit; spoken replies ≤3 sentences unless asked to elaborate |
 | Runtime memory | leos-brain vault (native path) + mem0/Chroma facts |
 | **Project memory** | **Memory-bank pattern: CLAUDE.md (≤150 lines) + imported `memory-bank/` files, updated every session via `/wrap`** |
 | Vision | screenpipe (screen) + moondream (camera, on-demand) + browser-use (web) |
 | Codebase | Python 3.12 monorepo, `uv`, pydantic-settings, ruff |
-| **Version control** | **NONE. No git anywhere. Safety via timestamped snapshots: `make snapshot` → `~/jarvis-snapshots/`. Secret project — nothing leaves the Mac.** |
+| **Version control** | **Private GitHub remote allowed (`squid-beast/friday`, updated 2026-09-29). Secrets never committed — `.env*`, `data/`, build output are gitignored. Commit/push only on Lohith's ask. `make snapshot` → `~/friday-snapshots/` stays the safety net.** |
 | Phone access | Deferred → Phase 7 |
 | n8n details | Placeholders, filled at Phase 4 |
-| Project home | `/Users/lohithkumar/langgraph` — .git removed; upstream source lives in `reference/langgraph-src/` (reference only, never imported) |
+| Project home | `/Users/lohithkumar/friday` (moved 2026-09-28); upstream LangGraph source lives in `reference/langgraph-src/` (reference only, never imported, gitignored) |
 
 ---
 
 ## 1. Architecture Principles
 
-1. **Two memory systems, never confused.** *Project memory* = what WE are building (CLAUDE.md + memory-bank/, read by Claude Code). *Runtime memory* = what JARVIS knows about Lohith (vault + mem0, read by the agent). Different folders, different consumers.
+1. **Two memory systems, never confused.** *Project memory* = what WE are building (CLAUDE.md + memory-bank/, read by Claude Code). *Runtime memory* = what FRIDAY knows about Lohith (vault + mem0, read by the agent). Different folders, different consumers.
 2. **Ports and adapters.** Vendor SDKs live ONLY in `adapters/`. Brain code imports interfaces. Swap Deepgram for whisper later = one file.
 3. **Everything is a tool.** New capability = entry in `config/tools.yaml` + one adapter. `graph.py` routing never changes for new tools.
 4. **Risk is config.** `tools.yaml` marks tools `safe` / `confirm` / `blocked`; the confirm-gate node reads it.
 5. **Local overrides beat cloud.** "Stand down" / "camera off" matched in `client/local_intents.py` before any network call.
-6. **One state object.** Typed `JarvisState` (pydantic) flows through the graph. No globals.
+6. **One state object.** Typed `FridayState` (pydantic) flows through the graph. No globals.
 7. **Boring persistence.** SQLite + Chroma under `data/`, excluded from snapshots' size by keeping media out.
 8. **Every phase shippable.** System runs at the end of every phase; later features are polite stubs ("not armed yet, sir").
 9. **CLAUDE.md stays small.** Under 150 lines; everything detailed lives in `memory-bank/` files it imports. (Community rule: bloated CLAUDE.md = context rot.)
@@ -54,8 +54,8 @@ langgraph/                           # /Users/lohithkumar/langgraph — NO git
 │       ├── wrap.md                  # /wrap — end-of-session memory update ritual
 │       ├── status.md                # /status — read memory-bank, say where we are
 │       └── test-all.md              # /test-all — run lint + tests, summarize
-├── memory-bank/                     # PROJECT MEMORY (for Claude Code, not Jarvis)
-│   ├── PROJECT.md                   # vision, what Jarvis is, why, end-state
+├── memory-bank/                     # PROJECT MEMORY (for Claude Code, not Friday)
+│   ├── PROJECT.md                   # vision, what Friday is, why, end-state
 │   ├── DECISIONS.md                 # append-only log: date, decision, reason
 │   ├── PROGRESS.md                  # current phase, what works, what's next, open bugs
 │   └── CONVENTIONS.md               # code style, patterns, how to add a tool/adapter
@@ -66,10 +66,10 @@ langgraph/                           # /Users/lohithkumar/langgraph — NO git
 ├── config/
 │   ├── settings.py                  # pydantic-settings — ONLY config entry point
 │   ├── tools.yaml                   # tool registry: name, description, adapter, risk
-│   └── persona.md                   # Jarvis system prompt
+│   └── persona.md                   # Friday system prompt
 ├── brain/
 │   ├── graph.py                     # LangGraph wiring
-│   ├── state.py                     # JarvisState
+│   ├── state.py                     # FridayState
 │   ├── nodes/                       # router, chat, vault, ops, vision, memory_writer
 │   └── confirm.py                   # interrupt() confirm-gate
 ├── adapters/                        # ALL vendor SDKs live here, one file each
@@ -88,7 +88,7 @@ langgraph/                           # /Users/lohithkumar/langgraph — NO git
 ├── data/                            # runtime state: checkpoint.db, chroma/, audit.db
 ├── scripts/
 │   ├── record_wakeword.py
-│   ├── snapshot.sh                  # rsync → ~/jarvis-snapshots/jarvis-YYYYMMDD-HHMM/ (excludes data/, .env kept LOCAL)
+│   ├── snapshot.sh                  # rsync → ~/friday-snapshots/friday-YYYYMMDD-HHMM/ (excludes data/, .env kept LOCAL)
 │   └── healthcheck.py
 └── tests/                           # pytest; graph tests use fake adapters
 ```
@@ -101,7 +101,7 @@ Why this merge (vs. the two structures you screenshotted): the "AI Agent Project
 
 **CLAUDE.md** (create in Phase 1, verbatim skeleton):
 ```markdown
-# Jarvis Life OS
+# Friday
 Personal voice assistant. SECRET project — local only, no git, no remotes, never reference it outside this folder.
 
 @memory-bank/PROJECT.md
@@ -155,7 +155,7 @@ This is how the project "remembers what we're making": every new Claude Code ses
 **Accept:** wakes across the room; <2 false wakes/day; "stand down" works with Wi-Fi off; menu-bar state truthful.
 
 ### PHASE 4 — Hands: n8n Ops
-**Build:** `adapters/n8n.py` (POST + `X-Jarvis-Secret` header, timeout, one retry); tools.yaml entries for 5 workflows; ops node: select tool → risk=`confirm` → interrupt "Shall I proceed, sir?" → spoken yes → execute → spoken summary; README steps for adding header-auth in n8n; full audit.
+**Build:** `adapters/n8n.py` (POST + `X-Friday-Secret` header, timeout, one retry); tools.yaml entries for 5 workflows; ops node: select tool → risk=`confirm` → interrupt "Shall I proceed, sir?" → spoken yes → execute → spoken summary; README steps for adding header-auth in n8n; full audit.
 **[LOHITH INPUT] fill-in table:**
 
 | # | Workflow | Does what | Webhook path | Safe/Destructive |
@@ -166,7 +166,7 @@ Plus `N8N_BASE_URL`, shared `N8N_WEBHOOK_SECRET` (openssl rand -hex 32, mirrored
 **Accept:** safe workflow voice-triggered end-to-end; destructive refuses without spoken yes; "what did you do today, sir?" reads audit log.
 
 ### PHASE 5 — Eyes: Screen, Camera, Browser
-**Build:** screenpipe (brew) + `adapters/screenpipe.py` (local search API, exclusion list) + vision/recall routes live; `adapters/camera.py` — single-frame capture → moondream (lazy-loaded) → describe, auto-release, menu-bar flash, NEVER continuous; `adapters/browser.py` — browser-use, dedicated Chrome profile `~/jarvis-chrome`, max-steps cap, submit/purchase = `confirm`; re-verify P3 kill commands against these real processes.
+**Build:** screenpipe (brew) + `adapters/screenpipe.py` (local search API, exclusion list) + vision/recall routes live; `adapters/camera.py` — single-frame capture → moondream (lazy-loaded) → describe, auto-release, menu-bar flash, NEVER continuous; `adapters/browser.py` — browser-use, dedicated Chrome profile `~/friday-chrome`, max-steps cap, submit/purchase = `confirm`; re-verify P3 kill commands against these real processes.
 **[LOHITH INPUT]:** screenpipe exclusions (suggest banking + WhatsApp); log the dedicated profile into needed accounts.
 **Accept:** "that repo I looked at yesterday afternoon?" answers; camera Q&A works, light goes off after; one browser task completes; kill commands verified.
 
@@ -180,7 +180,7 @@ Text chat + Mission Board on the phone; the server stays on 127.0.0.1 and
 `tailscale serve` proxies it into the private tailnet over TLS (docs/PHONE.md).
 integrations/ask.py bridges phone text into the SAME brain — router, confirm/PIN
 gates, audit, and kill phrases all hold over text ("stand down" typed on the phone
-cuts the session at home). /chat PWA (Add to Home Screen), com.jarvis.dashboard
+cuts the session at home). /chat PWA (Add to Home Screen), com.friday.dashboard
 launchd agent. The tailnet already exists (Mac, iPhone, Hostinger VPS).
 **[LOHITH INPUT]:** `tailscale serve --bg 8787` on the Mac; toggle Tailscale on
 on the iPhone; Add to Home Screen.
@@ -212,12 +212,12 @@ Visual tracking across platforms, inside this repo. Architecture: platform crede
 stay IN N8N; the Mac pulls metrics from authed n8n webhooks into data/metrics.db;
 the Mission Board serves 127.0.0.1 only. Docs: docs/DASHBOARD.md.
 
-**D1 — Board + pipeline (BUILT 2026-08-10):** integrations/ package (store, jarvis_health,
+**D1 — Board + pipeline (BUILT 2026-08-10):** integrations/ package (store, friday_health,
 n8n_pull, collect, server + dashboard.html); config/metrics.yaml registry;
-`make collect` / `make dashboard`; hourly launchd timer (com.jarvis.metrics).
+`make collect` / `make dashboard`; hourly launchd timer (com.friday.metrics).
 **[LOHITH INPUT]:** the four n8n metrics workflows (table in docs/DASHBOARD.md) + their
 paths in config/metrics.yaml.
-**Accept:** board shows live Instagram/BookYourSlot/leads/n8n/Jarvis cards after one
+**Accept:** board shows live Instagram/BookYourSlot/leads/n8n/Friday cards after one
 `make collect`; survives a dead webhook; hourly refresh hands-free.
 
 **D2 — Calendar + voice metrics (BUILT 2026-08-10):** adapters/calendar.py (EventKit read +
@@ -263,7 +263,7 @@ SESSION_SILENCE_TIMEOUT_S=120
 WAKE_THRESHOLD=0.6
 # Observability (optional)
 LANGSMITH_API_KEY=
-LANGSMITH_PROJECT=jarvis
+LANGSMITH_PROJECT=friday
 ```
 
 ---

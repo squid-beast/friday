@@ -7,23 +7,23 @@ never reachable off the Mac. Data flows one way:
 Instagram / BookYourSlot / leads / ...   (credentials live in n8n, on the VPS)
         └── n8n "metrics" workflows → JSON rows
                  └── Mac pulls hourly (integrations/n8n_pull.py, secret header)
-                        └── data/metrics.db  ←also← integrations/jarvis_health.py
+                        └── data/metrics.db  ←also← integrations/friday_health.py
                                └── make dashboard → Mission Board
 ```
 
 ## Run it
 
 ```bash
-make collect     # one sweep now (jarvis health + all configured webhooks)
+make collect     # one sweep now (friday health + all configured webhooks)
 make dashboard   # serve the board on http://127.0.0.1:8787
 ```
 
-`make install-launchd` adds `com.jarvis.metrics` — a sweep at login and every
+`make install-launchd` adds `com.friday.metrics` — a sweep at login and every
 hour after. The board auto-refreshes every 60 seconds.
 
 ## Add a platform (no code)
 
-1. In n8n, create a workflow: Webhook trigger (POST, same `X-Jarvis-Secret`
+1. In n8n, create a workflow: Webhook trigger (POST, same `X-Friday-Secret`
    header-auth credential as docs/N8N-SETUP.md) → pull the platform's numbers
    → **Respond to Webhook** with a JSON array:
 
@@ -50,10 +50,10 @@ and logged — it never kills the sweep.
 | `/webhook/metrics-leads` | new_7d, contacted_7d, converted_7d |
 | `/webhook/metrics-n8n-health` | runs_24h, failures_24h |
 
-Jarvis's own card (wakes, tool runs/failures, camera looks) needs nothing —
+Friday's own card (wakes, tool runs/failures, camera looks) needs nothing —
 it reads the local audit log.
 
-## Asking Jarvis instead of looking
+## Asking Friday instead of looking
 
 The same store is one adapter away from the voice side; "how did the reels do
 this week, sir?" lands in a later Phase D chunk (see PLAN.md Phase D2).

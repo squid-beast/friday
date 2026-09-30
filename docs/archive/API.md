@@ -1,4 +1,4 @@
-# JARVIS API — every way to command the system
+# FRIDAY API — every way to command the system
 
 One server, three addresses (same routes, same auth everywhere):
 
@@ -21,7 +21,7 @@ One server, three addresses (same routes, same auth everywhere):
 | POST | `/api/v1/conversation` | Talk to the brain: `{"text": "..."}` → `{"reply", "pending"}`. Routing, vault, memory, tool gates, audit — identical to speaking. Confirm-gated tools answer with the question; send `{"text": "yes"}` to proceed. |
 | GET | `/api/v1/system/status` | Daemon state (active/dormant/off), armed systems, queue depth, next event, activity |
 | GET | `/api/v1/metrics` | 14-day metric series per platform (sparkline data) |
-| GET | `/api/v1/agenda` | Today's calendar + Jarvis activity log |
+| GET | `/api/v1/agenda` | Today's calendar + Friday activity log |
 | GET | `/api/v1/studio/queue` | Content review queue `{items, armed}` |
 | POST | `/api/v1/studio/queue/refresh` | Pull trending items from n8n |
 | POST | `/api/v1/studio/publish` | `{"id", "caption"}` → n8n posts to Instagram; audited |
@@ -69,4 +69,4 @@ keeps the transcript alive between screens. Rebuild after UI changes:
 | Studio + metrics cards | the n8n content/metrics workflows exist (docs/CONTENT-STUDIO.md, docs/DASHBOARD.md) |
 | n8n voice tools answering | the 5 workflows are ACTIVATED in the n8n editor |
 | Camera sight | moondream-2 weights finish (station switched; watcher armed) |
-| PIN tools | 4-digit `JARVIS_PIN` in .env |
+| PIN tools | 4-digit `FRIDAY_PIN` in .env |

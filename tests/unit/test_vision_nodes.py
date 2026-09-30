@@ -1,4 +1,4 @@
-"""jarvis-life-os · tests/unit/test_vision_nodes.py
+"""friday · tests/unit/test_vision_nodes.py
 
 recall / vision_select / vision_execute with fakes, plus the graph-level
 browser confirm gate (same interrupt invariants as ops).
@@ -15,7 +15,7 @@ from brain.nodes.vision import (
     vision_execute_node,
     vision_select_node,
 )
-from brain.state import JarvisState
+from brain.state import FridayState
 from tests.fakes import BrokenLLM, FakeLLM
 
 HIT = ScreenHit(
@@ -26,8 +26,8 @@ HIT = ScreenHit(
 )
 
 
-def _state(utterance: str, pending: str = "") -> JarvisState:
-    return JarvisState(
+def _state(utterance: str, pending: str = "") -> FridayState:
+    return FridayState(
         messages=[{"role": "user", "content": utterance}], pending_action=pending
     )
 

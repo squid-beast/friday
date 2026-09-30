@@ -1,4 +1,4 @@
-"""jarvis-life-os · tests/conftest.py
+"""friday · tests/conftest.py
 
 Tests must never read the developer's real .env — the suites were only green
 before one existed (found 2026-08-11 when Stage 5 filled in VOICE_WS_URL and

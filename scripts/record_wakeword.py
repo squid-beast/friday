@@ -1,4 +1,4 @@
-"""jarvis-life-os · scripts/record_wakeword.py
+"""friday · scripts/record_wakeword.py
 
 Guided recorder: 50 samples of a phrase for openWakeWord training, across
 near/far/quiet/loud scenarios. Re-running resumes — existing takes are kept.

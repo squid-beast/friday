@@ -1,4 +1,4 @@
-"""jarvis-life-os · tests/unit/test_local_intents.py
+"""friday · tests/unit/test_local_intents.py
 
 Kill/capture phrase matcher (TDD — written before client/local_intents.py).
 Every kill phrase + near-misses that must NOT trigger.
@@ -20,7 +20,7 @@ from client.local_intents import Intent, match
     ("text", "intent"),
     [
         ("stand down", Intent.STAND_DOWN),
-        ("Jarvis, stand down.", Intent.STAND_DOWN),
+        ("Friday, stand down.", Intent.STAND_DOWN),
         ("STAND DOWN", Intent.STAND_DOWN),
         ("please stand down now", Intent.STAND_DOWN),
         ("go to sleep", Intent.STAND_DOWN),

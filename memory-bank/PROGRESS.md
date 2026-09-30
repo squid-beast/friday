@@ -1,10 +1,39 @@
 # PROGRESS
 
 ## Current phase
-Phases 1–7 + D1 + D2 + G0–G3 + Friday Phase A/B code + tests COMPLETE. Friday is
-now the active product identity in the persona, dashboard, run book, wake-recording
-scripts, and status API. Remaining: Lohith's strict-owner wake recordings/training +
-live acceptance runs -> DEMO-SCRIPT clean takes = v1 DONE.
+docs/phases/PHASE-1 (cleanup + integrations) DONE 2026-09-29. Next spec in line:
+docs/phases/PHASE-2-multi-model-llm.md (only on Lohith's go-ahead). v1 demo still
+waits on Lohith's strict-owner wake recordings/training + live acceptance runs.
+
+## Phase 1 — cleanup, full Friday rename, integrations audit (2026-09-29)
+- Splits (no behavior change): api.py -> api.py + api_hud.py + api_devices.py
+  (route groups self-register GET_API/POST_API like jobs_api); server.py ->
+  server.py + access.py (gate mixin) + static_files.py (serving mixin). Tests
+  split: test_api_v1(+_devices), test_gesture(+_motion), test_nodes +
+  test_memory_writer, test_agent + test_agent_intents; helpers in
+  tests/api_harness.py, `served` fixture in tests/unit/conftest.py, FakeBrain
+  in tests/fakes.py. No source/test file > 200 lines.
+- FULL Jarvis -> Friday rename (Lohith's call): packages, identifiers, launchd
+  com.friday.*, Chroma friday_facts, X-Friday-Secret, friday-notes.md,
+  ~/friday-snapshots, ~/friday-chrome, LangSmith project, metrics key, prompts,
+  PWA manifest, docs. Only "Hey Jarvis" (the real bundled fallback model) stays.
+  Runtime migrated: .env JARVIS_PIN -> FRIDAY_PIN (+ 2 non-secret values),
+  old com.jarvis.* agents unloaded + archived, ~/jarvis-snapshots moved.
+  Found: the Chroma facts store was EMPTY and no jarvis-notes.md existed — nothing lost.
+- tools.yaml: 10 dead /webhook/TODO blocks deleted (13 live tools unchanged);
+  ideas moved to README backlog. .env.example documents all 67 settings fields
+  (verified 0 missing, values == defaults). .gitignore += reference/, .coverage,
+  gesture/handpose, node_modules/, .claude/settings.local.json.
+- Git policy: private remote allowed (squid-beast/friday, already PRIVATE, 0
+  commits -> nothing to rotate). CLAUDE/AGENTS/PLAN §0 updated. No git run.
+- launchd: 6 agents (screenpipe + moondream plists deleted); doctor reports them
+  "dark by design". Integrations audit: all 14 modules wired + tested, adapter
+  contract holds, vendor-import exceptions documented in ARCHITECTURE.
+- Verification: lint green; 568 unit (576 - 6 removed-plist params - 2 removed
+  doctor checks); 11 integration; 4 scenario; router eval PASSED vs real Haiku;
+  coverage 95%. Live: dashboard/killswitch/voiceworker running, metrics +
+  logrotate ran 0, status API truthful ("Hey Jarvis" active, wake-only), PIN
+  armed, real conversation replies "Friday, sir".
 
 ## Friday rename + strict wake-only voice lock + passive dashboard (2026-08-30)
 - Product identity is now Friday across the visible system: persona, dashboard title,
@@ -172,22 +201,22 @@ live acceptance runs -> DEMO-SCRIPT clean takes = v1 DONE.
 - Tests: lint green; 293 L1 unit; 9 L2 integration; 1 L4 scenario; 30-case L3 eval.
 
 ## Next step
-Lohith: complete Friday's owner-only wake path, then do live acceptance:
-1. Record the 50 `Hey Friday` clips + 25 owner negative clips.
-2. Train `voice/wakeword/wake.onnx` + `voice/wakeword/owner.joblib`.
-3. Set `WAKE_MODEL_PATH`, `WAKE_VERIFIER_PATH`, `WAKE_REQUIRE_VERIFIER=true`.
-4. Restart the voice worker / killswitch and confirm the dashboard header flips
-   from `Hey Jarvis` fallback to `Hey Friday`, with `Voice lock armed`.
-5. Then continue the remaining live setup items: camera TCC, n8n workflow activation,
-   calls provider, and DEMO-SCRIPT clean runs.
+1. Lohith: decide the n8n base URL (VPS now serves plain HTTP on :5678; its
+   tailscale-serve TLS front is gone) -> restore `tailscale serve` on the VPS or
+   set N8N_BASE_URL=http://... ; then `make doctor` = all clear.
+2. Lohith: update each n8n workflow's header check to X-Friday-Secret, then activate.
+3. Lohith: strict Friday wake — record/train wake.onnx + owner.joblib, set
+   WAKE_MODEL_PATH / WAKE_VERIFIER_PATH / WAKE_REQUIRE_VERIFIER=true.
+4. Next code phase: docs/phases/PHASE-2-multi-model-llm.md on his go-ahead.
 
 ## Open bugs / blockers
-- [ ] Lohith: strict Friday wake is not live until he records/trains the custom
-      wake model and owner verifier, then sets the three env vars noted above.
-- [ ] Lohith: camera under launchd still depends on the one-time macOS permission.
-- [ ] Lohith: n8n workflows / real Studio publish / calls provider remain setup work.
-- [ ] Nothing code-blocked; Friday rename, passive dashboard, and wake-only lock path
-      are implemented and fully unit-tested.
+- [ ] make doctor: n8n FAIL (SSL wrong version — VPS answers http on :5678). Lohith's call.
+- [ ] Docker Desktop not running -> com.friday.livekit exits 1 (retries) and the
+      voiceworker (phone voice) can't reach LiveKit. Mac wake path unaffected.
+- [ ] Phone/browser sessions holding only the old jarvis_key cookie must re-open
+      once with ?key=.
+- [ ] ~/Jarvis Life OS/ (old logs only) still on disk — archive/delete is Lohith's call.
+- [ ] Strict Friday wake not live until the custom wake model + verifier are trained.
 
 ## n8n WIRED over the tailnet (2026-08-15)
 - Base URL + API key in .env; n8n reachable (200) at the VPS's ts.net name.

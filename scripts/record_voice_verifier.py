@@ -1,4 +1,4 @@
-"""jarvis-life-os · scripts/record_voice_verifier.py
+"""friday · scripts/record_voice_verifier.py
 
 Record negative clips for Friday's owner-voice verifier. These clips must NOT
 contain the wake phrase; they should be normal speech from Lohith so the

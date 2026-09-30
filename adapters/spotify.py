@@ -1,4 +1,4 @@
-"""jarvis-life-os · adapters/spotify.py
+"""friday · adapters/spotify.py
 
 Control the Spotify desktop app via macOS `osascript` (AppleScript) — no
 dependency, no API key, no OAuth. Handles play / pause / skip / previous /

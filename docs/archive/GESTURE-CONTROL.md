@@ -8,7 +8,7 @@ open palm (stop/wake)**. This spec is the plan; nothing is built yet.
 
 A native macOS agent watches the camera, tracks your hand with Apple's Vision
 framework, turns gestures into real Mac actions (move the cursor, click, switch
-tabs/desktops, zoom), and streams a live view of what it sees into the Jarvis
+tabs/desktops, zoom), and streams a live view of what it sees into the Friday
 UI so you can watch yourself being tracked.
 
 ## 2 · Why native (not the browser)
@@ -21,7 +21,7 @@ agent; the UI just shows the feed and status.
 ## 3 · Architecture (fits the existing pattern)
 
 ```
- camera ─▶ com.jarvis.gesture (native agent)
+ camera ─▶ com.friday.gesture (native agent)
              ├─ AVFoundation: 30fps frames
              ├─ Vision: VNDetectHumanHandPoseRequest → 21 hand landmarks
              ├─ gesture engine: landmarks → {pinch, swipe, point, palm, zoom}
@@ -30,7 +30,7 @@ agent; the UI just shows the feed and status.
  kill: "camera off" control-file + open-palm gesture + menu-bar toggle
 ```
 
-- New launchd agent `com.jarvis.gesture` — like every other organ, runs on
+- New launchd agent `com.friday.gesture` — like every other organ, runs on
   login, **no VS Code or terminal needed** (that's the whole launchd design;
   building needs my tools, running needs nothing).
 - Reuses the existing camera-off control file so "camera off" kills it instantly.
@@ -45,7 +45,7 @@ agent; the UI just shows the feed and status.
 | Thumb+index pinch (quick) | Click |
 | Thumb+index pinch, hold + move apart/together | Zoom in / out (⌘+ / ⌘−) |
 | Open hand swipe L / R | Switch desktop/Space (⌃→ / ⌃←) or browser tab (⌘⇧] / ⌘⇧[) |
-| Open palm held | Stop gesture mode (and, optionally, wake Jarvis) |
+| Open palm held | Stop gesture mode (and, optionally, wake Friday) |
 
 Tuning knobs (thresholds, dwell times, smoothing) live in `.env`/config — the
 "physical world needs calibration" reality; hands and lighting vary.
@@ -84,7 +84,7 @@ Tuning knobs (thresholds, dwell times, smoothing) live in `.env`/config — the
 
 ## 8 · Honest cost
 
-This is the most ambitious capability in Jarvis — a multi-step native build,
+This is the most ambitious capability in Friday — a multi-step native build,
 and the riskiest (it can control your whole Mac). The projection phase (G1) is
 low-risk and quick; the control phases (G2–G4) are where the power and the care
 concentrate. Recommend building G0→G1 first so you see it working before we arm

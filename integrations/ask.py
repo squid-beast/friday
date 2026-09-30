@@ -1,4 +1,4 @@
-"""jarvis-life-os · integrations/ask.py
+"""friday · integrations/ask.py
 
 Text turns (phone PWA) into the SAME brain the voice uses: same router, same
 confirm/PIN gates, same audit. Kill phrases are checked before the graph, so

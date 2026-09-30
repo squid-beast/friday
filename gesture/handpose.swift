@@ -1,4 +1,4 @@
-// jarvis-life-os · gesture/handpose.swift
+// friday · gesture/handpose.swift
 //
 // G0/G1/G2 native tracker: capture the camera, run Apple Vision hand-pose on up
 // to TWO hands per frame, and emit one JSON line per frame:

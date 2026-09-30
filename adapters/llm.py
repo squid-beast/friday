@@ -1,4 +1,4 @@
-"""jarvis-life-os · adapters/llm.py
+"""friday · adapters/llm.py
 
 Anthropic wrapper: get_llm() LiveKit component for the voice pipeline,
 think() one-shot helper (smart/fast) for the brain. Retries/timeout are the

@@ -1,4 +1,4 @@
-/* jarvis-ui · lib/api.js — the ONE place the UI talks HTTP. Versioned,
+/* friday-ui · lib/api.js — the ONE place the UI talks HTTP. Versioned,
    meaningful endpoints; auth rides the gate cookie set at first visit. */
 
 async function request(path, options = {}) {
@@ -22,7 +22,7 @@ export const systemStatus = () => request("/api/v1/system/status");
 /** 14-day metric series per platform (the sparkline cards). */
 export const metrics = () => request("/api/v1/metrics");
 
-/** Today's calendar + Jarvis activity log. */
+/** Today's calendar + Friday activity log. */
 export const agenda = () => request("/api/v1/agenda");
 
 /** Content Studio review queue. -> {items, armed} */

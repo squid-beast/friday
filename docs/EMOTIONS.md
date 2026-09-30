@@ -1,7 +1,7 @@
 # EMOTION ENGINE — design (implemented as brain/mood.py, Phase 2 core + Phase 6 polish)
 
 Honest scope: simulated affect. A persistent state machine that behaves like feelings and
-authentically drives Jarvis's tone — not subjective experience. That is the buildable thing.
+authentically drives Friday's tone — not subjective experience. That is the buildable thing.
 
 ## Model
 Two-layer state, persisted in data/mood.json (survives restarts):

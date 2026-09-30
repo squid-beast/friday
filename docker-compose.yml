@@ -1,4 +1,4 @@
-# jarvis-life-os · docker-compose.yml — livekit only, bound to 127.0.0.1.
+# friday · docker-compose.yml — livekit only, bound to 127.0.0.1.
 # Console mode (`make voice`) needs no docker; `make run` (dev mode) needs livekit.
 # Chroma runs embedded in-process (data/chroma) since Phase 2 — no server.
 services:

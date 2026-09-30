@@ -1,4 +1,4 @@
-"""jarvis-life-os · tests/unit/test_dashboard_server.py
+"""friday · tests/unit/test_dashboard_server.py
 
 The dashboard server: localhost binding, JSON summary, rendered page, 404s.
 Runs against an ephemeral port with a temp metrics db.

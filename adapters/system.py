@@ -1,4 +1,4 @@
-"""jarvis-life-os · adapters/system.py
+"""friday · adapters/system.py
 
 The Mac's own vitals for the HUD system-monitor card — CPU, memory, disk,
 uptime. psutil is already in the tree (chromadb pulls it); lazy-imported so the

@@ -1,4 +1,4 @@
-"""jarvis-life-os · adapters/camera.py
+"""friday · adapters/camera.py
 
 Single-frame sight. Capture via imagesnap — one frame, then the process exits,
 so the camera is released by construction and continuous capture is impossible
@@ -8,7 +8,7 @@ lens is ever touched.
 
 A frame is VALIDATED before it is described: a black/unreadable frame (what a
 TCC-blocked camera produces — imagesnap writes black and still exits 0) is
-rejected, so Jarvis never narrates darkness as if it saw something. Every real
+rejected, so Friday never narrates darkness as if it saw something. Every real
 frame is saved to the snaps dir so the dashboard can show what it saw.
 """
 

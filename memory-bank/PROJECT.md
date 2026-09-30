@@ -1,4 +1,4 @@
-# PROJECT — What Jarvis Life OS Is
+# PROJECT — What Friday Is
 
 > **Current state & decisions (2026-09-28):** read `docs/SYSTEM-REVIEW.md` first — what runs, what is broken, keep/pause/remove, open decisions.
 
@@ -7,12 +7,12 @@ An always-available, voice-first personal OS for Lohith's life and business. Wak
 "Wake up, Daddy's home", talk naturally, and it answers from his real knowledge (leos-brain
 vault), remembers everything it's told (mem0), runs his business automations (n8n on
 Hostinger), recalls anything he's seen on screen (screenpipe), sees through the camera on
-demand (moondream), and operates the web (browser-use). Full Jarvis persona: "sir", dry
+demand (moondream), and operates the web (browser-use). Full Friday persona: "sir", dry
 British wit, replies <= 3 spoken sentences.
 
 ## Non-negotiables
 - 100% local brain (MacBook, Apple Silicon 16GB). Cloud only for LLM/STT/TTS API calls.
-- Secret: no git, no remotes, no telemetry beyond LLM APIs. Snapshots to ~/jarvis-snapshots/.
+- Secret: no git, no remotes, no telemetry beyond LLM APIs. Snapshots to ~/friday-snapshots/.
 - Kill controls work OFFLINE: "stand down", "camera off", menu-bar toggle, hotkey ⌥⌘J.
 - Destructive actions require spoken confirmation ("Shall I proceed, sir?").
 

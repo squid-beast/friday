@@ -1,4 +1,4 @@
-"""jarvis-life-os · scripts/rotate_logs.py
+"""friday · scripts/rotate_logs.py
 
 Copytruncate log rotation for the launchd agents' logs (data/logs/*.log).
 Each agent writes via a launchd stdout/stderr redirect held open in APPEND mode
@@ -7,7 +7,7 @@ the agent's fd). Instead: gzip the contents to a timestamped archive, then
 truncate the original to zero — the same inode, now empty, keeps receiving
 writes. Archives older than the keep window are pruned.
 
-Run hourly by com.jarvis.logrotate; `python -m scripts.rotate_logs` by hand.
+Run hourly by com.friday.logrotate; `python -m scripts.rotate_logs` by hand.
 """
 
 import gzip

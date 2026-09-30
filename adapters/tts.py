@@ -1,4 +1,4 @@
-"""jarvis-life-os · adapters/tts.py
+"""friday · adapters/tts.py
 
 Cartesia speech synthesis factory (LiveKit component). ElevenLabs fallback is
 a documented env var only until it's actually needed.

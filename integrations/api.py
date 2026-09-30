@@ -1,4 +1,4 @@
-"""jarvis-life-os · integrations/api.py
+"""friday · integrations/api.py
 
 JSON endpoints behind the app screens — plain functions the HTTP shell
 (server.py) dispatches to. Each takes a parsed body dict and returns a
@@ -133,7 +133,7 @@ def status(_body: dict) -> dict:
             "n8n ops": bool(s.n8n_base_url),
             "studio": bool(s.content_trending_webhook),
             "phone voice": bool(s.voice_ws_url),
-            "pin": bool(s.jarvis_pin),
+            "pin": bool(s.friday_pin),
             "gate": bool(s.app_access_key),
             "voice lock": voice_lock_ready,
         },
@@ -141,131 +141,6 @@ def status(_body: dict) -> dict:
         "next_event": events[0] if events else None,
         "activity": today["activity"][-3:],
     }
-
-
-def hud(_body: dict) -> dict:
-    """One glanceable payload for the HUD screen: vitals, weather, the combined
-    Notes & Reminders feed, automations (counts + recent runs), and agent state.
-    Each source degrades independently — a dark corner never blanks the screen."""
-    from adapters import system
-    from client import control
-    from config.settings import get_settings
-
-    s = get_settings()
-    weather = {}
-    try:
-        weather = asyncio.run(_weather_conditions(s.weather_city))
-    except Exception:
-        weather = {}
-    autos = {"runs": [], "counts": {}, "armed": bool(s.n8n_base_url)}
-    try:
-        from integrations import automations
-
-        autos = asyncio.run(automations.recent())
-    except Exception:
-        pass
-    return {
-        "system": system.snapshot(),
-        "weather": weather,
-        "reminders": _reminders_feed(),
-        "automations": autos,
-        "daemon": control.read_state(),
-        "systems": status({})["systems"],
-    }
-
-
-async def _weather_conditions(city: str) -> dict:
-    if not city:
-        return {}
-    from adapters import weather
-
-    return await weather.conditions(city)
-
-
-def _reminders_feed() -> dict:
-    """Notes & Reminders, all four sources combined and labelled."""
-    from integrations import reminders
-
-    items = [{"text": r["text"], "source": "you"} for r in reminders.pending()]
-    try:
-        from adapters.calendar import events_today, format_event
-
-        items += [{"text": format_event(e), "source": "calendar"}
-                  for e in asyncio.run(events_today())[:6]]
-    except Exception:
-        pass
-    notes = []
-    try:
-        from adapters import vault
-
-        notes = vault.recent()
-    except Exception:
-        notes = []
-    return {"items": items[:12], "notes": notes}
-
-
-def automation_detail(body: dict) -> dict:
-    """Tap-to-expand: one automation run's outcome and a data preview."""
-    from integrations import automations
-
-    return asyncio.run(automations.detail(str(body.get("id", ""))))
-
-
-def vault_open(body: dict) -> dict:
-    """Open the vault in Obsidian — the whole thing, or one note by name. We hand
-    browsing off to the real tool. Failure -> ValueError (server maps it to 400)."""
-    from adapters import vault
-
-    return {"opened": vault.open_in_obsidian(str(body.get("note", "")))}
-
-
-def gesture_state(_body: dict) -> dict:
-    """Latest hand-tracking state for /gesture: per-hand {chirality, gesture,
-    landmarks} + whether cursor control is armed. on_air = published < 1.5s ago;
-    stale/missing -> off-air. Never crashes."""
-    from pathlib import Path
-
-    from config.settings import get_settings
-
-    off = {"on_air": False, "control": False, "hands": []}
-    try:
-        data = json.loads(Path(get_settings().gesture_state_file).read_text())
-    except (OSError, ValueError):
-        return off
-    if time.time() - float(data.get("ts", 0)) >= 1.5:
-        return off
-    return {"on_air": True, "control": bool(data.get("control")),
-            "hands": data.get("hands", [])}
-
-
-def gesture_control(body: dict) -> dict:
-    """Arm (or disarm) cursor control (G2). {"on": true} creates the flag the agent
-    watches; {"on": false} removes it. An open palm also clears it (agent-side)."""
-    from pathlib import Path
-
-    from config.settings import get_settings
-
-    flag = Path(get_settings().gesture_control_file)
-    if bool(body.get("on")):
-        flag.parent.mkdir(parents=True, exist_ok=True)
-        flag.touch()
-    else:
-        flag.unlink(missing_ok=True)
-    return {"control": flag.exists()}
-
-
-def vision_snaps(_body: dict) -> dict:
-    """Recent camera snaps (newest first) for the dashboard confirmation tile.
-    Each id maps to /api/v1/vision/snaps/<id>.jpg. Read-only, never crashes."""
-    from pathlib import Path
-
-    from config.settings import get_settings
-
-    try:
-        files = sorted(Path(get_settings().vision_snaps_dir).glob("*.jpg"), reverse=True)
-    except OSError:
-        files = []
-    return {"snaps": [f.stem for f in files]}
 
 
 def content_list(_body: dict) -> dict:

@@ -1,4 +1,4 @@
-"""jarvis-life-os · tests/unit/test_app_gate.py
+"""friday · tests/unit/test_app_gate.py
 
 Access-key gate for the app server (TDD — the wall the public internet hits).
 Unset APP_ACCESS_KEY = open on localhost/tailnet, today's behavior. Set =

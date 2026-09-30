@@ -1,4 +1,4 @@
-# JARVIS LIFE OS — Official Architecture
+# FRIDAY — Official Architecture
 
 The system as built and enforced (2026-08-19): 464 L1 unit + 11 L2 integration
 + 4 L4 scenario tests, a 33-case L3 router eval, lint under the official rule
@@ -24,6 +24,17 @@ One rule per layer, each machine-enforced:
   `safe | confirm | pin | blocked`.
 - **integrations/** — the HTTP shell (gate, /api/v1, SvelteKit build serving)
   + platform collectors. Network code allowed here and in adapters only.
+  The shell is split by concern: `server.py` (routing) + `access.py` (key
+  gate) + `static_files.py` (contained file serving); endpoints live in
+  route-group modules that export `GET_API`/`POST_API` and self-register —
+  `api.py` (status/agenda/studio/voice/daemon), `api_hud.py`,
+  `api_devices.py` (Obsidian/gesture/snaps), `jobs_api.py`. New route group =
+  new module + one entry in server.py's registration loop.
+- **Sanctioned vendor imports outside adapters/** (audited 2026-09-29, no
+  drift): `voice/` uses the `livekit.agents` framework (CONVENTIONS);
+  `gesture/actuator.py` Quartz (native Mac control); `client/killswitch.py`
+  rumps/pynput (menu bar); `scripts/` tooling (httpx doctor, sounddevice
+  recorders, openwakeword trainer). `brain/` imports none.
 - **client/ + audit/** — the kill path: ZERO network imports
   (subprocess-proven), control-file IPC, append-only audit.
 - **ui/** — SvelteKit SPA, built locally, served same-origin; tokens-only
@@ -47,13 +58,13 @@ One rule per layer, each machine-enforced:
 | Morning brief | brain/brief.py | test_brief (7 — every failure still greets) |
 | Audit trail | audit/log.py | test_audit (6), L4 demo asserts rows |
 | Access gate | integrations/server.py `_gate` | test_app_gate (6, TDD red-first) |
-| API v1 + SPA serving | integrations/{server,api}.py | test_api_v1 (16 — positive/negative/adversarial), test_dashboard_server (10), test_voice_server (7), test_status_api |
+| API v1 + SPA serving | integrations/{server,access,static_files,api,api_hud,api_devices}.py | test_api_v1 + test_api_v1_devices (positive/negative/adversarial), test_dashboard_server (10), test_voice_server (7), test_status_api |
 | Content Studio | integrations/content.py | test_content (9 — dedupe, two-tap, audit row) |
-| Metrics board | integrations/{store,collect,n8n_pull,jarvis_health,metrics_voice}.py | test_metrics_store, test_collectors (7), test_collect_run, test_metrics_voice (zero-LLM digest) |
+| Metrics board | integrations/{store,collect,n8n_pull,friday_health,metrics_voice}.py | test_metrics_store, test_collectors (7), test_collect_run, test_metrics_voice (zero-LLM digest) |
 | Phone bridge | integrations/ask.py | test_ask_bridge (7 — kill phrases pre-graph) |
 | Resilience | every node's failure branch | test_fallbacks (10), test_healthcheck (13) |
 | UI design system | ui/src (14 files) | test_ui (12 — tokens, computed WCAG, 44px, a11y, zero-external, Svelte contracts) |
-| Auto-start | launchd/*.plist (7), scripts/install_launchd.sh | test_launchd (per-plist parse, KeepAlive law) |
+| Auto-start | launchd/com.friday.*.plist (6), scripts/install_launchd.sh | test_launchd (per-plist parse, KeepAlive law) |
 | Safety net | scripts/snapshot.sh, config/settings.py | test_snapshot (rm-escape regression), test_settings |
 | THE DEMO | all of the above | scenario/test_demo_script (steps 2–7, one thread, gate mid-demo) |
 

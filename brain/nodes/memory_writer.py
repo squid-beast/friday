@@ -1,4 +1,4 @@
-"""jarvis-life-os · brain/nodes/memory_writer.py
+"""friday · brain/nodes/memory_writer.py
 
 Post-turn fact extraction into long-term memory. Fire-and-forget: the node
 schedules a background task and returns immediately, so the spoken reply is
@@ -11,7 +11,7 @@ import re
 
 from adapters import memory as memory_adapter
 from adapters.llm import think as llm_think
-from brain.state import JarvisState, last_user
+from brain.state import FridayState, last_user
 
 log = logging.getLogger(__name__)
 
@@ -35,7 +35,7 @@ _tasks: set[asyncio.Task] = set()
 
 
 async def memory_writer_node(
-    state: JarvisState, *, think=llm_think, remember=memory_adapter.remember
+    state: FridayState, *, think=llm_think, remember=memory_adapter.remember
 ) -> dict:
     utterance = last_user(state.messages)
     if utterance and _FACT_HINT.search(utterance):

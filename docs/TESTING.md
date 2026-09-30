@@ -4,7 +4,7 @@ Why this exists: agents fail in production for reasons normal apps don't — non
 LLM output, silent tool failures, drifting prompts. Industry consensus (agent testing pyramid):
 most failures are caught by DETERMINISTIC tests on your own logic, not by testing the LLM.
 
-## The Jarvis Testing Pyramid (bottom = most tests, run always)
+## The Friday Testing Pyramid (bottom = most tests, run always)
 
 ### L1 — Unit tests (deterministic, no network, run on every change)
 - EVERY adapter has unit tests with the vendor SDK mocked. Test: happy path, timeout,

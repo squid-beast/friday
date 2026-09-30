@@ -1,4 +1,4 @@
-"""jarvis-life-os · adapters/calendar.py
+"""friday · adapters/calendar.py
 
 macOS Calendar via EventKit. Reads whatever Calendar.app holds — add the
 Google account there and Google events come along free (DECISIONS.md). First

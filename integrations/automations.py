@@ -1,4 +1,4 @@
-"""jarvis-life-os · integrations/automations.py
+"""friday · integrations/automations.py
 
 Reads the n8n execution history for the HUD Automations card via the public
 REST API (X-N8N-API-KEY). recent() normalizes runs (name, status, when);

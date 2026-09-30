@@ -1,4 +1,4 @@
-"""jarvis-life-os · brain/nodes/__init__.py
+"""friday · brain/nodes/__init__.py
 
 Purpose: Package marker.
 Filled in: Phase 2

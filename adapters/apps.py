@@ -1,7 +1,7 @@
-"""jarvis-life-os · adapters/apps.py
+"""friday · adapters/apps.py
 
 The wake launch: open sir's apps + tabs (Spotify, then Chrome with his
-configured URLs including the Jarvis cockpit). macOS `open` only — a subprocess,
+configured URLs including the Friday cockpit). macOS `open` only — a subprocess,
 no network. Fired on EVERY wake (voice/agent.py) and on demand by the
 `open_apps` tool ("open my apps"). Each `open` is checked and logged, so a
 missing app or wrong name surfaces instead of silently no-opping.

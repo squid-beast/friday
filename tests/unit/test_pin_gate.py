@@ -1,4 +1,4 @@
-"""jarvis-life-os · tests/unit/test_pin_gate.py
+"""friday · tests/unit/test_pin_gate.py
 
 Spoken-PIN gate for risk=pin tools (TDD — written before the implementation).
 Invariants: no PIN in the answer = no execution, an eager "yes" is NOT a PIN,
@@ -85,7 +85,7 @@ class Executor:
 
 @pytest.fixture
 def pin_env(monkeypatch: pytest.MonkeyPatch):
-    monkeypatch.setenv("JARVIS_PIN", "4242")
+    monkeypatch.setenv("FRIDAY_PIN", "4242")
     get_settings.cache_clear()
     yield
     get_settings.cache_clear()
@@ -141,7 +141,7 @@ async def test_no_pin_no_execution_even_with_eager_yes(pin_env, answer: str) -> 
 
 
 async def test_unset_pin_locks_the_tool_without_asking(monkeypatch: pytest.MonkeyPatch) -> None:
-    monkeypatch.setenv("JARVIS_PIN", "")
+    monkeypatch.setenv("FRIDAY_PIN", "")
     get_settings.cache_clear()
     try:
         llm = FakeLLM(["ops", "wire_refund", "NONE"])

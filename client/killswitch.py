@@ -1,4 +1,4 @@
-"""jarvis-life-os · client/killswitch.py
+"""friday · client/killswitch.py
 
 Menu-bar killswitch (rumps) + global hotkey (pynput): the always-available,
 zero-network hard cut. The icon is TRUTHFUL — it polls the daemon's real state
@@ -13,7 +13,7 @@ import threading
 import rumps
 from pynput import keyboard
 
-from client.daemon import JarvisDaemon, SessionState
+from client.daemon import FridayDaemon, SessionState
 from config.settings import get_settings
 
 _ICONS = {SessionState.DORMANT: "😴", SessionState.ACTIVE: "🎙"}
@@ -36,12 +36,12 @@ def parse_hotkey(spec: str) -> str:
 
 
 class KillswitchApp(rumps.App):
-    def __init__(self, daemon: JarvisDaemon, daemon_thread: threading.Thread) -> None:
+    def __init__(self, daemon: FridayDaemon, daemon_thread: threading.Thread) -> None:
         super().__init__(_ICONS[SessionState.DORMANT], quit_button=None)
         self._daemon = daemon
         self._thread = daemon_thread
         self._toggle = rumps.MenuItem("Wake", callback=self._on_toggle)
-        self.menu = [self._toggle, rumps.MenuItem("Quit Jarvis", callback=self._on_quit)]
+        self.menu = [self._toggle, rumps.MenuItem("Quit Friday", callback=self._on_quit)]
         self._shown: SessionState | None = None
         rumps.Timer(self._refresh, 1).start()
 
@@ -66,7 +66,7 @@ class KillswitchApp(rumps.App):
 
 
 def main() -> None:
-    daemon = JarvisDaemon()
+    daemon = FridayDaemon()
     thread = threading.Thread(target=daemon.run, daemon=True)
     thread.start()
     spec = get_settings().hotkey.strip()

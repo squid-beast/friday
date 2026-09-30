@@ -1,4 +1,4 @@
-"""jarvis-life-os · adapters/screenpipe.py
+"""friday · adapters/screenpipe.py
 
 Screen recall against the LOCAL screenpipe HTTP API (127.0.0.1 — nothing
 leaves the machine). Defense in depth: SCREENPIPE_EXCLUDE apps are filtered

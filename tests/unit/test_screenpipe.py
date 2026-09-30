@@ -1,4 +1,4 @@
-"""jarvis-life-os · tests/unit/test_screenpipe.py
+"""friday · tests/unit/test_screenpipe.py
 
 adapters/screenpipe.py mocked: query shape, exclusion filtering, the
 screen_off cut, defensive parsing, service-down propagation.

@@ -1,4 +1,4 @@
-"""jarvis-life-os · tests/unit/test_collect_run.py
+"""friday · tests/unit/test_collect_run.py
 
 The full collection sweep: run() sums every collector; main() reports.
 """
@@ -23,7 +23,7 @@ async def test_run_sums_all_collectors(monkeypatch: pytest.MonkeyPatch) -> None:
     async def fake_pull(**kw):
         return 5
 
-    monkeypatch.setattr(collect_mod.jarvis_health, "collect", lambda **kw: 4)
+    monkeypatch.setattr(collect_mod.friday_health, "collect", lambda **kw: 4)
     monkeypatch.setattr(collect_mod, "calendar_count", fake_calendar)
     monkeypatch.setattr(collect_mod.n8n_pull, "collect", fake_pull)
     assert await collect_mod.run() == 10

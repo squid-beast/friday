@@ -63,7 +63,7 @@ is never touched (CONVENTIONS rule). This is why the system can absorb all of it
 | Call other models | `adapters/llm.py`, `config/settings.py`, `.env.example` | graph, nodes |
 | Fish Audio voice + emotion | `adapters/tts.py`, `config/persona.md`, `config/settings.py` | graph, nodes |
 | More real actions | `config/tools.yaml` (+ n8n workflows) | graph, adapters (reuse `n8n.py`) |
-| Public deploy | new `launchd/com.jarvis.tunnel.plist`, `docs/DEPLOY.md`, Cloudflare dashboard | app code |
+| Public deploy | new `launchd/com.friday.tunnel.plist`, `docs/DEPLOY.md`, Cloudflare dashboard | app code |
 | Only-my-voice | `adapters/wakeword.py` (verifier), `config/settings.py`, `voice/` turn-gate | kill path |
 
 ---
@@ -203,7 +203,7 @@ auth. **The Mac stays the brain** — the tunnel is a secure front door, not a r
 3. **cloudflared on the Mac:** `brew install cloudflared`; `cloudflared tunnel login`;
    `cloudflared tunnel create friday`; config maps `friday.paypilotlabs.com → http://127.0.0.1:8787`
    (your existing dashboard port); `cloudflared tunnel route dns friday friday.paypilotlabs.com`.
-4. **launchd:** add `com.jarvis.tunnel.plist` (mirror the other 8 agents) so the tunnel auto-starts
+4. **launchd:** add `com.friday.tunnel.plist` (mirror the other 8 agents) so the tunnel auto-starts
    and crash-restarts. Document install in `docs/DEPLOY.md`.
 5. **Cloudflare Access (Zero Trust):** put an Access policy on `friday.paypilotlabs.com` = your email
    OTP / passkey. This is the "passkey/key" layer — a stranger is stopped at Cloudflare, before the

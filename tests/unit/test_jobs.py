@@ -1,4 +1,4 @@
-"""jarvis-life-os · tests/unit/test_jobs.py
+"""friday · tests/unit/test_jobs.py
 
 Jobs command center: reading batches, decisions round-trip (atomic, audited),
 answers, the tracker pipeline, the open-file allowlist, and the HTTP surface.

@@ -1,6 +1,6 @@
-"""jarvis-life-os · adapters/telephony.py
+"""friday · adapters/telephony.py
 
-Jarvis places a real phone call in sir's stead (risk=pin). Provider-agnostic
+Friday places a real phone call in sir's stead (risk=pin). Provider-agnostic
 shell: it REFUSES cleanly until a provider + key are configured, and dispatches
 once they are. Turn-key path is Vapi (an AI assistant dials and talks); Twilio
 is left as a documented seam. What to sign up for → docs/CALLS.md.

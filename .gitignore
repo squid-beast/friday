@@ -23,3 +23,10 @@ ui/build/
 .DS_Store
 .idea/
 .vscode/
+
+# Vendored upstream source (read-only study copy) + generated artifacts
+reference/
+.coverage
+node_modules/
+gesture/handpose
+.claude/settings.local.json

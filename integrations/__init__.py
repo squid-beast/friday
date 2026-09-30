@@ -1,4 +1,4 @@
-"""jarvis-life-os · integrations/
+"""friday · integrations/
 
 Platform metric collectors + the local dashboard. Same discipline as adapters/:
 one platform per file, network code allowed HERE only, credentials stay in n8n

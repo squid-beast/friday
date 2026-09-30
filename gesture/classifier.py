@@ -1,4 +1,4 @@
-"""jarvis-life-os · gesture/classifier.py
+"""friday · gesture/classifier.py
 
 Pure hand-gesture classifier: 2D hand landmarks -> a named static gesture, the
 "whole set" — fist, point, sarina's middle finger, pinch, peace, three, four,

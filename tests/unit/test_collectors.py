@@ -1,6 +1,6 @@
-"""jarvis-life-os · tests/unit/test_collectors.py
+"""friday · tests/unit/test_collectors.py
 
-jarvis_health (audit -> counters) and n8n_pull (webhook rows -> store),
+friday_health (audit -> counters) and n8n_pull (webhook rows -> store),
 all mocked: header, dead-webhook resilience, malformed rows, unconfigured no-op.
 """
 
@@ -13,7 +13,7 @@ import pytest
 import integrations.n8n_pull as pull
 from audit.log import Event
 from config.settings import get_settings
-from integrations import jarvis_health
+from integrations import friday_health
 
 _RealAsyncClient = httpx.AsyncClient
 
@@ -26,7 +26,7 @@ class Sink:
         self.points.append((platform, metric, value))
 
 
-# --- jarvis_health ---
+# --- friday_health ---
 
 
 def _tool(name: str, result: str, confirmed: bool) -> Event:
@@ -34,7 +34,7 @@ def _tool(name: str, result: str, confirmed: bool) -> Event:
     return Event(ts=1.0, kind="tool", detail=detail)
 
 
-def test_jarvis_health_counts() -> None:
+def test_friday_health_counts() -> None:
     events = [
         Event(ts=1.0, kind="wake", detail="wake_phrase"),
         Event(ts=2.0, kind="wake", detail="manual"),
@@ -44,7 +44,7 @@ def test_jarvis_health_counts() -> None:
         _tool("wire_refund", "aborted: pin refused", False),
     ]
     sink = Sink()
-    assert jarvis_health.collect(read=lambda since: events, record=sink.record) == 4
+    assert friday_health.collect(read=lambda since: events, record=sink.record) == 4
     data = {m: v for _, m, v in sink.points}
     assert data == {
         "wakes_24h": 2, "tool_runs_24h": 3, "tool_failures_24h": 2, "camera_looks_24h": 1,
@@ -129,7 +129,7 @@ async def test_pull_stores_rows_with_secret_header(
         record=sink.record, config=_config(tmp_path, "/webhook/metrics-ig"))
     assert written == 2
     assert ("instagram", "reel_views_7d", 12000.0) in sink.points
-    assert requests[0].headers["X-Jarvis-Secret"] == "s3cret"
+    assert requests[0].headers["X-Friday-Secret"] == "s3cret"
 
 
 async def test_dead_webhook_skipped_not_fatal(

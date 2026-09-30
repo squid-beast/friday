@@ -1,4 +1,4 @@
-"""jarvis-life-os · brain/nodes/vision.py
+"""friday · brain/nodes/vision.py
 
 The eyes, three ways:
 - recall_node: screenpipe search -> grounded persona answer (route "recall").
@@ -19,7 +19,7 @@ from audit.log import log_tool
 from brain.confirm import ask_confirmation
 from brain.nodes.chat import persona
 from brain.nodes.ops import ABORTED
-from brain.state import JarvisState, assistant_reply, last_user
+from brain.state import FridayState, assistant_reply, last_user
 
 log = logging.getLogger(__name__)
 
@@ -33,7 +33,7 @@ BROWSER_APOLOGY = "The browser task failed, sir."
 _RECALL_PROMPT = """\
 Answer sir's question using ONLY these OCR snippets from his own screen
 (newest data wins; mention when he saw it if helpful). If they don't contain
-the answer, say so plainly. Speak as Jarvis.
+the answer, say so plainly. Speak as Friday.
 
 Question: {question}
 
@@ -42,7 +42,7 @@ Screen snippets:
 
 _CLASSIFY_PROMPT = """\
 Sir said: "{utterance}"
-Is he asking Jarvis to LOOK through the camera at something physical, or to
+Is he asking Friday to LOOK through the camera at something physical, or to
 OPERATE the web browser? Reply with exactly "camera", or "browser: <the task
 restated as one clear instruction>"."""
 
@@ -58,7 +58,7 @@ Tell sir the outcome in at most two spoken sentences, in character."""
 
 
 async def recall_node(
-    state: JarvisState, *, think=llm_think, screen_search=screenpipe_adapter.search
+    state: FridayState, *, think=llm_think, screen_search=screenpipe_adapter.search
 ) -> dict:
     utterance = last_user(state.messages)
     try:
@@ -85,7 +85,7 @@ async def recall_node(
     return assistant_reply(reply)
 
 
-async def vision_select_node(state: JarvisState, *, think=llm_think) -> dict:
+async def vision_select_node(state: FridayState, *, think=llm_think) -> dict:
     utterance = last_user(state.messages)
     try:
         raw = (await think(_CLASSIFY_PROMPT.format(utterance=utterance), fast=True)).strip()
@@ -99,7 +99,7 @@ async def vision_select_node(state: JarvisState, *, think=llm_think) -> dict:
 
 
 async def vision_execute_node(
-    state: JarvisState,
+    state: FridayState,
     *,
     think=llm_think,
     look=camera_adapter.look,

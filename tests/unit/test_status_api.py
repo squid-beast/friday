@@ -1,4 +1,4 @@
-"""jarvis-life-os · tests/unit/test_status_api.py
+"""friday · tests/unit/test_status_api.py
 
 /api/status — the board's everything-at-a-glance payload: armed flags mirror
 config, queue counts the review items, shape is stable for the UI.

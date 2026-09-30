@@ -1,4 +1,4 @@
-"""jarvis-life-os · adapters/__init__.py
+"""friday · adapters/__init__.py
 
 Purpose: Package marker. ALL vendor SDKs live in this package only.
 Filled in: Phase 1

@@ -1,4 +1,4 @@
-# jarvis-life-os · Makefile
+# friday · Makefile
 # setup:     uv sync + pre-fetch Silero VAD weights (no surprise download mid-demo)
 # voice:     voice loop on local mic/speakers — the Phase 1 demo path (no docker needed)
 # run:       docker livekit + voice worker in dev mode (chroma is embedded, no docker)
@@ -6,7 +6,7 @@
 # lint:      ruff check .
 # eval:      router/persona evals (armed in Phase 2+)
 # doctor:    scripts/healthcheck.py full mode (real API pings)
-# snapshot:  scripts/snapshot.sh -> ~/jarvis-snapshots/ (the no-git safety net)
+# snapshot:  scripts/snapshot.sh -> ~/friday-snapshots/ (the no-git safety net)
 .PHONY: setup run voice gesture test test-unit test-integration test-scenario lint eval doctor snapshot install-launchd collect dashboard ui
 
 setup:

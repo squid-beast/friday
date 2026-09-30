@@ -1,4 +1,4 @@
-"""jarvis-life-os · client/daemon.py
+"""friday · client/daemon.py
 
 v1 wake-word daemon. DORMANT: only the local wake model listens, zero
 streaming. ACTIVE: console agent subprocess runs the voice pipeline. Back to
@@ -56,7 +56,7 @@ def _chime(sound: str = "Glass") -> None:
         log.warning("chime failed", exc_info=True)
 
 
-class JarvisDaemon:
+class FridayDaemon:
     def __init__(
         self,
         *,

@@ -1,6 +1,6 @@
-# Jarvis makes phone calls (what to set up)
+# Friday makes phone calls (what to set up)
 
-Jarvis can dial a real number and speak to a person **on your behalf**. It's the
+Friday can dial a real number and speak to a person **on your behalf**. It's the
 highest-risk tool in the system, so it's **PIN-gated** (spoken 4-digit PIN) and
 refuses until you configure a provider. The adapter is `adapters/telephony.py`;
 it's inert until the `.env` values below are set — nothing half-working runs.
@@ -14,7 +14,7 @@ it's inert until the `.env` values below are set — nothing half-working runs.
 
 ## Fastest path — Vapi (turnkey, recommended)
 1. Sign up at **vapi.ai**. Cost ~$0.05–0.15/min.
-2. Create an **Assistant** — give it Jarvis's manner and the calling goal
+2. Create an **Assistant** — give it Friday's manner and the calling goal
    (reschedule, ask a question, etc.). Note its **assistant id**.
 3. Buy/import a **phone number** in Vapi. Note its **phone number id**.
 4. Grab your **API key**.
@@ -35,6 +35,6 @@ and bridge the voice agent over SIP. More control, more wiring — the
 `telephony_provider != "vapi"` branch is the seam; say the word and I'll build it.
 
 ## Using it
-Say (or type): **"call +1 415-555-2671 and reschedule my appointment."** Jarvis
+Say (or type): **"call +1 415-555-2671 and reschedule my appointment."** Friday
 extracts the number, asks for your **PIN**, and on the correct code places the
 call with your goal as context. No number in the request → it asks for one.

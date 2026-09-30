@@ -1,4 +1,4 @@
-"""jarvis-life-os · tests/unit/test_confirm_gate.py
+"""friday · tests/unit/test_confirm_gate.py
 
 Confirm gate (TDD — written before brain/confirm.py and the ops wiring).
 The invariant that must never regress: a risk=confirm tool executes ONLY after

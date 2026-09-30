@@ -1,4 +1,4 @@
-"""jarvis-life-os · tests/unit/test_brief.py
+"""friday · tests/unit/test_brief.py
 
 Morning brief: once per day via the audit marker, grounded in remembered
 facts, degrades to a canned line — never blocks the greeting.

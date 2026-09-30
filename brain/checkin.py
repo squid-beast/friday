@@ -1,6 +1,6 @@
-"""jarvis-life-os · brain/checkin.py
+"""friday · brain/checkin.py
 
-The caring check-in: on every wake, after the greeting, Jarvis asks ONE warm
+The caring check-in: on every wake, after the greeting, Friday asks ONE warm
 question — rotating through sir's health, skills, whereabouts and what he's done
 — grounded in what he last said so it lands like family, not a form. His answer
 is remembered by the normal per-turn memory writer.

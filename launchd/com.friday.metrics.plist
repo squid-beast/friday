@@ -3,26 +3,22 @@
 <plist version="1.0">
 <dict>
 	<key>Label</key>
-	<string>com.jarvis.livekit</string>
+	<string>com.friday.metrics</string>
 	<key>ProgramArguments</key>
 	<array>
-		<string>__DOCKER__</string>
-		<string>compose</string>
-		<string>up</string>
-		<string>-d</string>
+		<string>/bin/bash</string>
+		<string>-c</string>
+		<string>cd "__REPO__" &amp;&amp; exec "__UV__" run python -m integrations.collect</string>
 	</array>
 	<key>WorkingDirectory</key>
 	<string>__REPO__</string>
 	<key>RunAtLoad</key>
 	<true/>
-	<key>KeepAlive</key>
-	<dict>
-		<key>SuccessfulExit</key>
-		<false/>
-	</dict>
+	<key>StartInterval</key>
+	<integer>3600</integer>
 	<key>StandardOutPath</key>
-	<string>__STATE__/logs/livekit.log</string>
+	<string>__STATE__/logs/metrics.log</string>
 	<key>StandardErrorPath</key>
-	<string>__STATE__/logs/livekit.log</string>
+	<string>__STATE__/logs/metrics.log</string>
 </dict>
 </plist>

@@ -1,4 +1,4 @@
-"""jarvis-life-os · tests/unit/test_router.py
+"""friday · tests/unit/test_router.py
 
 Router node with FakeLLM: our parsing/fallback logic, not the model.
 Real-model accuracy lives in tests/evals/test_router_eval.py.
@@ -10,12 +10,12 @@ import pytest
 
 import brain.nodes.router as router_mod
 from brain.nodes.router import route_node
-from brain.state import JarvisState
+from brain.state import FridayState
 from tests.fakes import BrokenLLM, FakeLLM
 
 
-def _state(utterance: str) -> JarvisState:
-    return JarvisState(messages=[{"role": "user", "content": utterance}])
+def _state(utterance: str) -> FridayState:
+    return FridayState(messages=[{"role": "user", "content": utterance}])
 
 
 async def test_clean_answer_routes() -> None:
@@ -42,7 +42,7 @@ async def test_llm_failure_falls_back_to_chat() -> None:
 
 async def test_no_user_message_skips_llm() -> None:
     llm = FakeLLM([])
-    assert (await route_node(JarvisState(), think=llm.think))["route"] == "chat"
+    assert (await route_node(FridayState(), think=llm.think))["route"] == "chat"
     assert llm.calls == []
 
 

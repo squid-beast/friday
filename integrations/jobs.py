@@ -1,4 +1,4 @@
-"""jarvis-life-os · integrations/jobs.py
+"""friday · integrations/jobs.py
 
 Jobs command center, READ side. The nightly job engine (Claude, in the cloud)
 drops each batch into ~/Downloads/Jobs/<YYYY-MM-DD>/batch.json; sir's clicks

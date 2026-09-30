@@ -3,21 +3,26 @@
 <plist version="1.0">
 <dict>
 	<key>Label</key>
-	<string>com.jarvis.screenpipe</string>
+	<string>com.friday.livekit</string>
 	<key>ProgramArguments</key>
 	<array>
-		<string>__SCREENPIPE__</string>
-		<!-- recall reads frames+OCR only; the audio pipeline crash-looped on
-		     whisper downloads and re-triggered permission prompts every respawn -->
-		<string>--disable-audio</string>
+		<string>__DOCKER__</string>
+		<string>compose</string>
+		<string>up</string>
+		<string>-d</string>
 	</array>
+	<key>WorkingDirectory</key>
+	<string>__REPO__</string>
 	<key>RunAtLoad</key>
 	<true/>
 	<key>KeepAlive</key>
-	<true/>
+	<dict>
+		<key>SuccessfulExit</key>
+		<false/>
+	</dict>
 	<key>StandardOutPath</key>
-	<string>__STATE__/logs/screenpipe.log</string>
+	<string>__STATE__/logs/livekit.log</string>
 	<key>StandardErrorPath</key>
-	<string>__STATE__/logs/screenpipe.log</string>
+	<string>__STATE__/logs/livekit.log</string>
 </dict>
 </plist>

@@ -1,4 +1,4 @@
-"""jarvis-life-os · tests/integration/test_n8n_contract.py
+"""friday · tests/integration/test_n8n_contract.py
 
 adapters/n8n.py against a mock HTTP transport: secret header on every request,
 exactly one retry on transport error / 5xx, no retry on 4xx, missing env raises.
@@ -42,7 +42,7 @@ async def test_secret_header_and_body(monkeypatch: pytest.MonkeyPatch) -> None:
     requests = _patch_client(monkeypatch, lambda r: httpx.Response(200, text="started"))
     result = await n8n.call("/webhook/content")
     assert result == "started"
-    assert requests[0].headers["X-Jarvis-Secret"] == "s3cret"
+    assert requests[0].headers["X-Friday-Secret"] == "s3cret"
     assert str(requests[0].url) == "https://n8n.example.test/webhook/content"
 
 

@@ -1,4 +1,4 @@
-"""jarvis-life-os · gesture/spike.py
+"""friday · gesture/spike.py
 
 G0 runner: pipe the native hand-pose feed (gesture/handpose) through the pure
 classifier and print the live gesture. This is the spike that proves the whole

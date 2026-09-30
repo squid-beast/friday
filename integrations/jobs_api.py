@@ -1,4 +1,4 @@
-"""jarvis-life-os · integrations/jobs_api.py
+"""friday · integrations/jobs_api.py
 
 HTTP surface for the Jobs command center (/api/v1/jobs/*), registered into the
 dashboard server's GET/POST tables. Bad input raises ValueError -> 400.

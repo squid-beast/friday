@@ -1,7 +1,7 @@
-"""jarvis-life-os · adapters/browser.py
+"""friday · adapters/browser.py
 
 Web hands via browser-use, ALWAYS in the dedicated Chrome profile
-(~/jarvis-chrome) — never sir's own browser. Hard max-steps cap from settings.
+(~/friday-chrome) — never sir's own browser. Hard max-steps cap from settings.
 The confirm gate lives in the vision node; by the time this runs, sir said yes.
 Heavy imports are lazy so startup and the kill path never pay for them.
 """

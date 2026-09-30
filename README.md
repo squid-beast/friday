@@ -15,7 +15,7 @@ Repo: `/Users/lohithkumar/friday` · Public URL:
 > **2026-09-28 review:** `docs/SYSTEM-REVIEW.md` lists what runs, what is broken, and what to keep, pause or remove.
 
 ## 1 · It's already running
-Eight launchd agents keep Friday alive across reboots. Right now you can:
+Six launchd agents (`com.friday.*`) keep Friday alive across reboots. Right now you can:
 - **Open the app** → the URL above (first visit on a device: add
   `?key=<APP_ACCESS_KEY from .env>` once → year-long cookie). Local:
   `http://127.0.0.1:8787`.
@@ -50,20 +50,21 @@ Important truth:
 ## 4 · Commands
 | Command | What it does |
 |---|---|
-| `make doctor` | Pings every service + key; says "all clear" or what's dark |
+| `make doctor` | Checks Anthropic, Deepgram, Cartesia, n8n, Chroma; lists what is dark by design |
 | `make dashboard` | App server on `http://127.0.0.1:8787` (foreground) |
 | `make voice` | Voice loop on the Mac's mic/speakers, barge-in, no Docker |
 | `make ui` | Rebuild the SvelteKit UI into `ui/build` (after any `ui/src` change) |
 | `make gesture` | Build the native hand-tracking spike (G0); then `uv run python -m gesture.spike` |
 | `make install-launchd` | Install/refresh all launchd agents (idempotent) |
-| `make snapshot` | rsync the repo → `~/jarvis-snapshots/` — the "undo" |
+| `make snapshot` | rsync the repo → `~/friday-snapshots/` — the "undo" |
 | `make lint` / `test-unit` | Lint (ruff) / L1 tests — before finishing any change |
 | `make test-integration` / `test-scenario` | L2 / the demo, end-to-end |
 | `make eval` | Router accuracy vs the real model (≥90% gate) |
 
-Restart one agent: `launchctl kickstart -k gui/$(id -u)/com.jarvis.<name>`
-(dashboard · killswitch · voiceworker · moondream · screenpipe · livekit ·
-metrics · logrotate).
+Restart one agent: `launchctl kickstart -k gui/$(id -u)/com.friday.<name>`
+(dashboard · killswitch · voiceworker · livekit · metrics · logrotate).
+Screen recall (screenpipe) and camera sight (moondream) are dark by design —
+their agents were removed 2026-09-29.
 
 Runtime state lives outside the repo under `FRIDAY_STATE_DIR`.
 Default: `~/Library/Application Support/Friday`.
@@ -88,12 +89,16 @@ nightly Claude run reads. The cockpit shows a read-only Jobs card linking here.
 API: `GET /api/v1/jobs/overview`; `POST /api/v1/jobs/{batch,decide,answer,open}`.
 
 ## 6 · What still needs you
-`make doctor` says **all clear**.
+`make doctor` (2026-09-29): all clear **except n8n** — the VPS now answers plain
+HTTP on :5678 (its tailnet TLS front is gone), so the configured `https://` base
+URL fails. Your call: restore `tailscale serve` on the VPS, or switch
+`N8N_BASE_URL` to `http://` (still WireGuard-encrypted inside the tailnet).
+Phone voice needs Docker Desktop running (LiveKit); the Mac wake path does not.
 
 | ✅ Working | ⏳ Needs you |
 |---|---|
-| Brain · PIN · voice keys · weather (°F) | **Grant Camera access** so the eyes work under launchd (say "what am I holding?" → allow the macOS prompt) |
-| Camera honest + **snaps in HUD** · screen recall · calendar | **Activate** your 5 n8n workflows in its editor |
+| Brain · PIN · voice keys · weather (°F) | **Phone/browser:** open the app once with `?key=` again (the old `jarvis_key` cookie is no longer accepted) |
+| Calendar · HUD snaps tile (camera dark by design) | **Activate** your 5 n8n workflows — first switch their header check to `X-Friday-Secret` |
 | Apps open on every wake · streaming replies | **Train** the custom `Hey Friday` wake model |
 | HUD · access gate · log rotation | **Train** the owner-voice verifier for strict wake-only access |
 | Caring check-in · calls scaffold (PIN-gated) | **Calls** provider (`docs/CALLS.md`) · **iPhone** Add to Home Screen (`docs/MOBILE.md`) |
@@ -108,6 +113,11 @@ API: `GET /api/v1/jobs/overview`; `POST /api/v1/jobs/{batch,decide,answer,open}`
 - **Actions:** n8n tools defined in `config/tools.yaml` — need activating in n8n.
 - **Emotion:** mood engine exists (`docs/EMOTIONS.md`) — colors word choice, not
   yet the voice.
+
+### Backlog — unbuilt n8n ideas (removed from tools.yaml 2026-09-29)
+content_pipeline · review_request · lead_followup · booking_reminders ·
+morning_report · lead_finder · draft_replies · send_outreach — each = one n8n
+workflow + one `config/tools.yaml` entry when wanted.
 
 ### Planned — v2 (see `docs/UPGRADE-PLAN.md`; NOT yet armed)
 - Call other models (OpenAI / Gemini / OpenRouter / local) — Phase 8.
@@ -133,5 +143,5 @@ API: `GET /api/v1/jobs/overview`; `POST /api/v1/jobs/{batch,decide,answer,open}`
 1. `make doctor` — names the dark service.
 2. Its log: `~/Library/Application Support/Friday/logs/<agent>.log`
    unless `FRIDAY_STATE_DIR` points somewhere else.
-3. Restart it: `launchctl kickstart -k gui/$(id -u)/com.jarvis.<agent>`.
-4. Roll back: copy from the newest `~/jarvis-snapshots/` folder.
+3. Restart it: `launchctl kickstart -k gui/$(id -u)/com.friday.<agent>`.
+4. Roll back: copy from the newest `~/friday-snapshots/` folder.

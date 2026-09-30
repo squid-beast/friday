@@ -1,6 +1,6 @@
 # Phone access — Phase 7 (Tailscale + PWA)
 
-Jarvis on your iPhone: the Mission Board and a text chat to the SAME brain —
+Friday on your iPhone: the Mission Board and a text chat to the SAME brain —
 same router, same confirm/PIN gates, same audit. Typing "stand down" on the
 phone touches the control file at home and the daemon ends the session.
 
@@ -24,7 +24,7 @@ On the iPhone:
    toggle it on).
 2. Safari → `https://lohiths-macbook-pro.<tailnet>.ts.net/chat`
    (`tailscale serve status` on the Mac prints the exact URL).
-3. Share → **Add to Home Screen**. Jarvis is now an app icon.
+3. Share → **Add to Home Screen**. Friday is now an app icon.
 
 `/chat` is the conversation; `/` is the Mission Board.
 
@@ -38,7 +38,7 @@ On the iPhone:
 
 ## Voice from the phone — Phase 7.6
 
-Full spoken Jarvis on the iPhone: mic + barge-in over the tailnet. The page
+Full spoken Friday on the iPhone: mic + barge-in over the tailnet. The page
 and LiveKit signalling ride `tailscale serve` (HTTPS/WSS — iOS requires a
 secure context for the mic); WebRTC media flows DIRECTLY over the tailnet's
 WireGuard tunnel to the Mac. Nothing public, ever.
@@ -57,7 +57,7 @@ Setup (once):
    tailscale serve --bg --https=8443 http://127.0.0.1:7880
    ```
 3. `make run` — docker LiveKit + the voice worker in dev mode.
-4. Phone → the Jarvis PWA → **Voice** tab → **CONNECT** (the tap doubles as
+4. Phone → the Friday PWA → **Voice** tab → **CONNECT** (the tap doubles as
    iOS's audio-playback permission gesture; allow the mic when asked).
 
 Same brain, same persona, same barge-in as the room mic at home — and saying

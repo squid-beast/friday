@@ -1,4 +1,4 @@
-"""jarvis-life-os · tests/unit/test_adapters.py
+"""friday · tests/unit/test_adapters.py
 
 Each Phase 1 adapter, vendor SDK mocked: happy path, timeout, malformed
 response, auth failure, missing key. No network. See docs/TESTING.md.

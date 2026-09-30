@@ -1,4 +1,4 @@
-"""jarvis-life-os · brain/nodes/router.py
+"""friday · brain/nodes/router.py
 
 Haiku classifier: utterance -> chat|vault|ops|vision|recall. Reads tool
 descriptions from config/tools.yaml so ops routing improves as tools are
@@ -12,7 +12,7 @@ from pathlib import Path
 import yaml
 
 from adapters.llm import think as llm_think
-from brain.state import JarvisState, last_user
+from brain.state import FridayState, last_user
 
 ROUTES = ("chat", "vault", "ops", "vision", "recall")
 
@@ -28,7 +28,7 @@ vault — sir's own notes and knowledge: his business, clients, projects, prices
 quotes, content ideas; also saving a note ("take a note", "add to my inbox").
 ops — DO a concrete action for sir via a tool: run a business workflow or automation, \
 check or book his calendar/schedule, place a phone call on his behalf, open his apps, \
-tell the weather, set a reminder; also questions about what Jarvis did or ran today. \
+tell the weather, set a reminder; also questions about what Friday did or ran today. \
 Pick this for anything that fires one of these tools:{tools}
 vision — look through the camera at the physical world ("what am I holding?", \
 "see me", "look at me", "can you see this?", "look at this"), or operate the web \
@@ -45,7 +45,7 @@ def _tools_context() -> str:
     return "".join(f"\n  - {t['name']}: {t['description']}" for t in tools)
 
 
-async def route_node(state: JarvisState, *, think=llm_think) -> dict:
+async def route_node(state: FridayState, *, think=llm_think) -> dict:
     utterance = last_user(state.messages)
     if not utterance:
         return {"route": "chat"}

@@ -1,4 +1,4 @@
-"""jarvis-life-os · brain/nodes/ops.py
+"""friday · brain/nodes/ops.py
 
 Ops in two nodes, because interrupt() REPLAYS its node on resume:
 - ops_select: Haiku picks the workflow (or answers "what did you do today")
@@ -19,7 +19,7 @@ from adapters.llm import think as llm_think
 from audit.log import log_tool, today
 from brain.confirm import ask_confirmation, ask_pin
 from brain.nodes.chat import persona
-from brain.state import JarvisState, assistant_reply, last_user
+from brain.state import FridayState, assistant_reply, last_user
 from config.settings import get_settings
 from config.tools import Tool, load_tools
 
@@ -76,7 +76,7 @@ async def _audit_report(think, audit_read) -> dict:
 
 
 async def ops_select_node(
-    state: JarvisState, *, think=llm_think, tools=load_tools, audit_read=today
+    state: FridayState, *, think=llm_think, tools=load_tools, audit_read=today
 ) -> dict:
     utterance = last_user(state.messages)
     if _AUDIT_RE.search(utterance):
@@ -100,7 +100,7 @@ async def ops_select_node(
 
 
 async def ops_execute_node(
-    state: JarvisState,
+    state: FridayState,
     *,
     think=llm_think,
     tools=load_tools,
@@ -117,7 +117,7 @@ async def ops_execute_node(
         audit(tool.name, tool.webhook_path, "refused: blocked", confirmed=False)
         return {**assistant_reply(BLOCKED_LINE), "pending_tool": ""}
     if tool.risk == "pin":
-        if not get_settings().jarvis_pin:
+        if not get_settings().friday_pin:
             audit(tool.name, tool.webhook_path, "refused: no pin configured", confirmed=False)
             return {**assistant_reply(NO_PIN_SET), "pending_tool": ""}
         if not pin_check(f"{tool.name} is PIN-protected, sir. Your code, please."):

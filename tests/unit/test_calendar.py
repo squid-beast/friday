@@ -1,4 +1,4 @@
-"""jarvis-life-os · tests/unit/test_calendar.py
+"""friday · tests/unit/test_calendar.py
 
 adapters/calendar.py with EventKit fully mocked — tests must NEVER trigger the
 macOS permission prompt. The objc glue itself is exercised live.

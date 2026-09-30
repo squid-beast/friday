@@ -1,6 +1,6 @@
-"""jarvis-life-os · brain/state.py
+"""friday · brain/state.py
 
-JarvisState — the one state object flowing through the graph (PLAN §1.6).
+FridayState — the one state object flowing through the graph (PLAN §1.6).
 Phase 4 adds tool_calls/pending_confirmation when the ops node arrives.
 """
 
@@ -12,7 +12,7 @@ from pydantic import BaseModel, Field
 Message = dict[str, str]  # {"role": "user" | "assistant", "content": "..."}
 
 
-class JarvisState(BaseModel):
+class FridayState(BaseModel):
     messages: Annotated[list[Message], operator.add] = Field(default_factory=list)
     route: str = ""  # chat|vault|ops|vision|recall — set by the router each turn
     reply: str = ""  # what the voice layer speaks this turn

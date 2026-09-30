@@ -1,4 +1,4 @@
-"""jarvis-life-os · tests/unit/test_metrics_store.py
+"""friday · tests/unit/test_metrics_store.py
 
 integrations/store.py: roundtrip, windowing, summary grouping, missing db.
 """
@@ -29,11 +29,11 @@ def test_summary_groups_by_platform_then_metric(tmp_path: Path) -> None:
     db = tmp_path / "metrics.db"
     record("bookyourslot", "bookings_7d", 9, db=db)
     record("bookyourslot", "mrr", 35, db=db)
-    record("jarvis", "wakes_24h", 4, db=db)
+    record("friday", "wakes_24h", 4, db=db)
     data = summary(db=db)
-    assert set(data) == {"bookyourslot", "jarvis"}
+    assert set(data) == {"bookyourslot", "friday"}
     assert set(data["bookyourslot"]) == {"bookings_7d", "mrr"}
-    assert data["jarvis"]["wakes_24h"][0].value == 4.0
+    assert data["friday"]["wakes_24h"][0].value == 4.0
 
 
 def test_missing_db_reads_empty(tmp_path: Path) -> None:

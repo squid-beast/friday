@@ -2,67 +2,11 @@
 # Risk: safe (runs immediately) | confirm ("Shall I proceed, sir?")
 #       | pin (spoken 4-digit PIN) | blocked (refused).
 #
-# LOHITH: every capability below = ONE n8n workflow + uncommenting its block.
-# Webhook paths come from each Workflow's Webhook node; auth/secret/curl test in
-# docs/N8N-SETUP.md. Each workflow receives {"utterance": "<what you said>"}.
+# Adding a capability = ONE n8n workflow (or adapter) + one entry below. Webhook
+# paths come from each workflow's Webhook node; each receives
+# {"utterance": "<what you said>"}. Unbuilt ideas live in README's backlog.
 # Risk policy: reading/finding/drafting = safe · anything that SENDS or posts
 # on your behalf = confirm · phone calls in your voice/name = pin.
-#
-# tools:
-#   - name: content_pipeline
-#     description: "runs the content pipeline for a new reel"      # router + selector read this
-#     adapter: adapters.n8n:run
-#     webhook_path: /webhook/TODO
-#     risk: confirm
-#   - name: review_request
-#     description: "sends a review request to a client"
-#     adapter: adapters.n8n:run
-#     webhook_path: /webhook/TODO
-#     risk: confirm
-#   - name: lead_followup
-#     description: "kicks off the AI follow-up sequence for new leads"
-#     adapter: adapters.n8n:run
-#     webhook_path: /webhook/TODO
-#     risk: confirm
-#   - name: booking_reminders
-#     description: "sends today's BookYourSlot booking reminders"
-#     adapter: adapters.n8n:run
-#     webhook_path: /webhook/TODO
-#     risk: confirm
-#   - name: morning_report
-#     description: "reads today's bookings and leads report"
-#     adapter: adapters.n8n:run
-#     webhook_path: /webhook/TODO
-#     risk: safe
-#
-# Assistant capabilities (added 2026-08-11, Lohith's ask — job search, leads,
-# drafts, calls). Same pattern; n8n holds every credential (job boards, email,
-# telephony) — nothing lands on this Mac:
-#   - name: job_search
-#     description: "searches job boards for roles matching sir's profile and shortlists the best"
-#     adapter: adapters.n8n:run
-#     webhook_path: /webhook/TODO
-#     risk: safe
-#   - name: lead_finder
-#     description: "finds new prospect leads with contact details for the business"
-#     adapter: adapters.n8n:run
-#     webhook_path: /webhook/TODO
-#     risk: safe
-#   - name: draft_replies
-#     description: "prepares draft responses to pending emails and messages for sir's review; drafts only, sends nothing"
-#     adapter: adapters.n8n:run
-#     webhook_path: /webhook/TODO
-#     risk: safe
-#   - name: send_outreach
-#     description: "sends the approved outreach or reply drafts on sir's behalf"
-#     adapter: adapters.n8n:run
-#     webhook_path: /webhook/TODO
-#     risk: confirm
-#   - name: make_call
-#     description: "places a phone call on sir's behalf using the AI voice agent"
-#     adapter: adapters.n8n:run
-#     webhook_path: /webhook/TODO
-#     risk: pin
 tools:
   # n8n capabilities (wired 2026-08-15 from the live workflow list; base URL =
   # tailnet n8n). Each needs its workflow ACTIVATED in the n8n editor to answer.

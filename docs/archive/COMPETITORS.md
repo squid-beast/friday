@@ -1,4 +1,4 @@
-# COMPETITOR RESEARCH — who else is building "Jarvis" (Aug 2026)
+# COMPETITOR RESEARCH — who else is building a "Jarvis" (Aug 2026)
 
 ## 1. HeyClicky (YC-backed, heyclicky.com)
 What it is: Mac-native AI buddy that lives on-screen. Hotkey-invoked; sees your screen
@@ -21,17 +21,17 @@ critique hook ("most AI agents are fancy UI with nothing behind them").
 Weaknesses vs us: business-ops focused, no voice-first room presence, no vision/screen
 recall, persona is branding not a behavioral system. It's a funnel as much as a product.
 
-## What to STEAL (adopt into Jarvis Life OS)
+## What to STEAL (adopt into Friday)
 1. HeyClicky's capture ethic: screen context ON DEMAND is a great privacy story — we
    already better it (screenpipe local-only), but SAY it like they do.
-2. On-screen pointing: post-v1 candidate — Jarvis draws an arrow/highlight when answering
+2. On-screen pointing: post-v1 candidate — Friday draws an arrow/highlight when answering
    "where is X on my screen?" (add to Phase 7+ backlog).
 3. Luke's manager->specialist agent pattern: our ops node can evolve into a delegator
    over n8n specialist flows. Also: proof-of-work demo content beats feature lists.
 4. Friction placement: our equivalent of "beside the cursor" is "already in the room" —
    the wake phrase IS our placement. Lean on it in demos.
 
-## How OUR Jarvis stands out (the positioning)
+## How OUR Friday stands out (the positioning)
 | Them | Us |
 |---|---|
 | Session helper you invoke | Presence that lives with you (wake word, sessions, moods) |
@@ -41,7 +41,7 @@ recall, persona is branding not a behavioral system. It's a funnel as much as a 
 | Demos | One-take 8-step demo with kill-switch proof (docs/DEMO-SCRIPT.md) |
 | Product for everyone | OS for one person — depth over breadth |
 
-One-liner: "HeyClicky helps you use your Mac. Azaris runs a funnel. Jarvis runs MY life —
+One-liner: "HeyClicky helps you use your Mac. Azaris runs a funnel. Friday runs MY life —
 locally, with a personality that's tested like code."
 
 ## Watchlist / revisit monthly

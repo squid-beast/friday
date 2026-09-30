@@ -1,4 +1,4 @@
-"""jarvis-life-os · scripts/train_voice_verifier.py
+"""friday · scripts/train_voice_verifier.py
 
 Train Friday's strict owner-voice verifier from Lohith's local recordings.
 Positive clips come from the recorded wake phrase takes; negatives are normal

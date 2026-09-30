@@ -1,4 +1,4 @@
-"""jarvis-life-os · tests/integration/test_checkpointing.py
+"""friday · tests/integration/test_checkpointing.py
 
 L2: real SQLite checkpointer + real embedded Chroma, FakeLLM. The acceptance
 path 'fact told -> full restart -> recalled', by machine: a restart is a fresh

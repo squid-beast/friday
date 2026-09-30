@@ -1,4 +1,4 @@
-/* jarvis-ui · lib/stores.js — shared state. The transcript lives HERE so it
+/* friday-ui · lib/stores.js — shared state. The transcript lives HERE so it
    survives client-side navigation between the cockpit and the focused views. */
 import { writable } from "svelte/store";
 import { converse, systemStatus, studioQueue } from "$lib/api.js";

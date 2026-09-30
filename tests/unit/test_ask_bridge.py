@@ -1,4 +1,4 @@
-"""jarvis-life-os · tests/unit/test_ask_bridge.py
+"""friday · tests/unit/test_ask_bridge.py
 
 The phone bridge: kill phrases never reach the graph, gate questions carry a
 pending flag the next text answers, threads stay continuous.

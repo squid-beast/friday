@@ -1,4 +1,4 @@
-"""jarvis-life-os · gesture/actuator.py
+"""friday · gesture/actuator.py
 
 Turn a pointing hand into real cursor moves + clicks via Quartz CGEvent. Moving
 the cursor needs no special permission; POSTING a click needs macOS Accessibility

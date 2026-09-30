@@ -1,4 +1,4 @@
-"""jarvis-life-os · integrations/metrics_voice.py
+"""friday · integrations/metrics_voice.py
 
 The Mission Board, read aloud — tools.yaml entry `metrics_report`. Builds a
 deterministic factual digest from the store (no LLM here: the ops node's
@@ -13,7 +13,7 @@ _KEYWORDS = {
     "bookyourslot": ("bookyourslot", "booking", "bookings", "revenue", "mrr"),
     "leads": ("lead", "leads", "converted", "follow-up", "followup"),
     "n8n": ("n8n", "workflow", "workflows", "automation"),
-    "jarvis": ("jarvis", "yourself", "your own"),
+    "friday": ("friday", "yourself", "your own"),
 }
 
 

@@ -1,4 +1,4 @@
-"""jarvis-life-os · config/settings.py
+"""friday · config/settings.py
 
 Single config entry point (pydantic-settings, reads .env). Nothing else reads os.environ.
 Keys default to "" — adapter factories raise on missing keys, not Settings, because
@@ -69,7 +69,7 @@ class Settings(BaseSettings):
     gesture_frame_file: str = "gesture/frame.jpg"   # G2: live camera frame for the feed
     gesture_control_file: str = "gesture/control_on"  # G2: cursor control armed while present
     screen_off_file: str = "control/screen_off"  # flag: recall refuses while present
-    browser_profile_dir: str = "~/jarvis-chrome"  # dedicated Chrome profile, never sir's own
+    browser_profile_dir: str = "~/friday-chrome"  # dedicated Chrome profile, never sir's own
     browser_max_steps: int = 15
     chrome_path: str = "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
 
@@ -95,12 +95,12 @@ class Settings(BaseSettings):
     wake_urls: str = (
         "https://www.instagram.com,https://github.com,"
         "https://mail.google.com,http://127.0.0.1:8787"
-    )  # comma-separated; last one is the Jarvis cockpit UI
+    )  # comma-separated; last one is the Friday cockpit UI
 
     # Highest-risk gate (Phase 6) — spoken 4-digit PIN; blank locks risk=pin tools shut
-    jarvis_pin: str = ""
+    friday_pin: str = ""
 
-    # Calling (PIN-gated) — Jarvis places a real phone call in sir's stead via a
+    # Calling (PIN-gated) — Friday places a real phone call in sir's stead via a
     # telephony provider. Blank provider = the tool refuses (unconfigured). See
     # docs/CALLS.md for what to sign up for. Provider: "vapi" | "twilio" | "".
     telephony_provider: str = ""
@@ -108,7 +108,7 @@ class Settings(BaseSettings):
     telephony_from_number: str = ""  # the number calls originate from (E.164)
     telephony_agent_id: str = ""  # provider-side assistant/agent id (Vapi), optional
 
-    # Weather sense (Open-Meteo, keyless) — the city Jarvis reports on
+    # Weather sense (Open-Meteo, keyless) — the city Friday reports on
     weather_city: str = ""
 
     # Dashboard (Phase D) — localhost only, never bound to a real interface
@@ -133,7 +133,7 @@ class Settings(BaseSettings):
 
     # Observability (optional)
     langsmith_api_key: str = ""
-    langsmith_project: str = "jarvis"
+    langsmith_project: str = "friday"
 
     def model_post_init(self, __context) -> None:
         state_dir = Path(self.state_dir).expanduser()

@@ -1,4 +1,4 @@
-"""jarvis-life-os · config/tools.py
+"""friday · config/tools.py
 
 Typed loader for config/tools.yaml — the ONLY place capabilities are declared
 (CONVENTIONS.md). A bad entry fails loudly at load, not silently at 2am.

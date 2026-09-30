@@ -1,4 +1,4 @@
-"""jarvis-life-os · tests/unit/test_ui.py
+"""friday · tests/unit/test_ui.py
 
 STRICT UI validation over the SvelteKit source (ui/src) + built output
 (ui/build). Machine-checked design rules, not vibes:

@@ -1,4 +1,4 @@
-"""jarvis-life-os · brain/confirm.py
+"""friday · brain/confirm.py
 
 The spoken gates for risky tools, via LangGraph interrupt(). Strict by design:
 - confirm (risk=confirm): explicit affirmative only; negation ANYWHERE wins.
@@ -71,4 +71,4 @@ def ask_confirmation(question: str) -> bool:
 def ask_pin(question: str) -> bool:
     """Same pause, but only the exact spoken PIN opens the gate."""
     answer = interrupt({"question": question})
-    return is_spoken_pin(str(answer), get_settings().jarvis_pin)
+    return is_spoken_pin(str(answer), get_settings().friday_pin)

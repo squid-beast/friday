@@ -136,22 +136,14 @@ async def test_check_n8n_unconfigured_is_not_a_failure(monkeypatch: pytest.Monke
     assert calls == []
 
 
-async def test_check_moondream_404_root_is_healthy(monkeypatch: pytest.MonkeyPatch) -> None:
-    _fake_http(monkeypatch, 404)
-    await hc.check_moondream()  # any response < 500 = the station answered
-
-
-async def test_check_screenpipe_5xx_fails(monkeypatch: pytest.MonkeyPatch) -> None:
-    _fake_http(monkeypatch, 503)
-    with pytest.raises(httpx.HTTPStatusError):
-        await hc.check_screenpipe()
-
-
-def test_quick_warns_when_eye_services_down(monkeypatch: pytest.MonkeyPatch, capsys) -> None:
-    monkeypatch.setattr(hc, "port_open", lambda *a, **k: False)
+def test_removed_eye_services_are_reported_dark_not_failed(
+    monkeypatch: pytest.MonkeyPatch, capsys
+) -> None:
+    monkeypatch.setattr(hc, "port_open", lambda *a, **k: True)
+    assert "screenpipe" not in hc.CHECKS and "moondream" not in hc.CHECKS
     assert hc.main(["--quick"]) == 0
     out = capsys.readouterr().out
-    assert "screenpipe" in out and "moondream" in out
+    assert "dark by design" in out and "WARN" not in out
 
 
 def test_quick_warns_when_strict_voice_lock_is_missing_model(

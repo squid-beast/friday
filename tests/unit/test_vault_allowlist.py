@@ -1,4 +1,4 @@
-"""jarvis-life-os · tests/unit/test_vault_allowlist.py
+"""friday · tests/unit/test_vault_allowlist.py
 
 Vault path allowlist (TDD — written before adapters/vault.py). Every read stays
 inside VAULT_PATH; escapes, symlinks out, hidden dirs, and VAULT_EXCLUDE folders

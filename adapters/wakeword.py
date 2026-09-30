@@ -1,4 +1,4 @@
-"""jarvis-life-os · adapters/wakeword.py
+"""friday · adapters/wakeword.py
 
 openwakeword + sounddevice: LOCAL phrase detection. This is the only audio
 path in DORMANT — nothing streams off the machine, and nothing here imports a
@@ -23,12 +23,12 @@ SAMPLE_RATE = 16_000
 FRAME_SAMPLES = 1280  # 80 ms — openwakeword's expected hop
 
 
-def _bundled_hey_jarvis() -> str:
+def _bundled_fallback_wake() -> str:
     return next(p for p in openwakeword.get_pretrained_model_paths() if "hey_jarvis" in p)
 
 
 def _wake_path() -> str:
-    return get_settings().wake_model_path or _bundled_hey_jarvis()
+    return get_settings().wake_model_path or _bundled_fallback_wake()
 
 
 def _model_key(path: str) -> str:

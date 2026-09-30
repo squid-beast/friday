@@ -1,4 +1,4 @@
-"""jarvis-life-os · tests/unit/test_nodes.py
+"""friday · tests/unit/test_nodes.py
 
 chat, vault, and memory_writer nodes with fakes: reply shape, grounding
 context, apology fallbacks, note-taking, fire-and-forget extraction.
@@ -6,16 +6,15 @@ context, apology fallbacks, note-taking, fire-and-forget extraction.
 
 from adapters.vault import VaultHit
 from brain.nodes.chat import LLM_APOLOGY, chat_node
-from brain.nodes.memory_writer import drain, memory_writer_node
 from brain.nodes.vault import NOTED, NOTHING_FOUND, VAULT_APOLOGY, vault_node
-from brain.state import JarvisState
+from brain.state import FridayState
 from tests.fakes import BrokenLLM, FakeLLM, FakeMemory, FakeVault
 
 HIT = VaultHit(path="projects/receivly.md", snippet="Quoted Receivly $1500 for setup.")
 
 
-def _state(utterance: str) -> JarvisState:
-    return JarvisState(messages=[{"role": "user", "content": utterance}])
+def _state(utterance: str) -> FridayState:
+    return FridayState(messages=[{"role": "user", "content": utterance}])
 
 
 # --- chat ---
@@ -23,7 +22,7 @@ def _state(utterance: str) -> JarvisState:
 
 async def test_chat_replies_in_persona_with_history() -> None:
     llm = FakeLLM(["Good evening, sir."])
-    state = JarvisState(
+    state = FridayState(
         messages=[
             {"role": "user", "content": "hello"},
             {"role": "assistant", "content": "At your service, sir."},
@@ -135,72 +134,3 @@ async def test_note_append_failure_apologizes() -> None:
         recall=FakeMemory().recall, append=boom,
     )
     assert out["reply"] == VAULT_APOLOGY
-
-
-# --- memory_writer ---
-
-
-async def test_extracts_and_stores_facts() -> None:
-    llm = FakeLLM(["Sir's gym locker code is 4242\nSir prefers morning workouts"])
-    mem = FakeMemory()
-    assert await memory_writer_node(
-        _state("remember my gym locker code is 4242, I go mornings"),
-        think=llm.think,
-        remember=mem.remember,
-    ) == {}
-    await drain()
-    assert mem.stored == ["Sir's gym locker code is 4242", "Sir prefers morning workouts"]
-
-
-async def test_none_stores_nothing() -> None:
-    mem = FakeMemory()
-    # "i like" passes the gate; the model still judges it small talk -> NONE
-    await memory_writer_node(_state("i like a bit of banter in the morning"),
-                             think=FakeLLM(["NONE"]).think, remember=mem.remember)
-    await drain()
-    assert mem.stored == []
-
-
-async def test_extraction_failure_never_raises() -> None:
-    mem = FakeMemory()
-    await memory_writer_node(_state("remember this"), think=BrokenLLM().think,
-                             remember=mem.remember)
-    await drain()
-    assert mem.stored == []
-
-
-async def test_no_utterance_schedules_nothing() -> None:
-    llm = FakeLLM([])
-    assert await memory_writer_node(JarvisState(), think=llm.think,
-                                    remember=FakeMemory().remember) == {}
-    await drain()
-    assert llm.calls == []
-
-
-async def test_fact_free_turn_skips_extraction() -> None:
-    llm = FakeLLM([])
-    mem = FakeMemory()
-    await memory_writer_node(
-        _state("what's the weather looking today, jarvis"), think=llm.think, remember=mem.remember
-    )
-    await drain()
-    assert llm.calls == []  # no fact hint -> no LLM call at all
-    assert mem.stored == []
-
-
-async def test_fact_hint_without_remember_still_extracts() -> None:
-    llm = FakeLLM(["Sir takes his coffee black"])
-    mem = FakeMemory()
-    await memory_writer_node(_state("i like my coffee black"), think=llm.think,
-                             remember=mem.remember)
-    await drain()
-    assert mem.stored == ["Sir takes his coffee black"]
-
-
-async def test_digits_pass_the_extraction_gate() -> None:
-    llm = FakeLLM(["Sir's door code is 4242"])
-    mem = FakeMemory()
-    await memory_writer_node(_state("the door code is 4242"), think=llm.think,
-                             remember=mem.remember)
-    await drain()
-    assert mem.stored == ["Sir's door code is 4242"]

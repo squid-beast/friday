@@ -1,4 +1,4 @@
-"""jarvis-life-os · tests/evals/test_router_eval.py
+"""friday · tests/evals/test_router_eval.py
 
 L3 eval: the REAL fast model against router_cases.yaml. Scored, not asserted
 per-case — PASS is >= 90% overall. Needs ANTHROPIC_API_KEY; skipped without it
@@ -12,7 +12,7 @@ import pytest
 import yaml
 
 from brain.nodes.router import route_node
-from brain.state import JarvisState
+from brain.state import FridayState
 from config.settings import get_settings
 
 _CASES_PATH = Path(__file__).parent / "router_cases.yaml"
@@ -36,7 +36,7 @@ async def test_router_accuracy_at_least_90_percent() -> None:
     cases = _cases()
 
     async def classify(case: dict) -> tuple[dict, str]:
-        state = JarvisState(messages=[{"role": "user", "content": case["utterance"]}])
+        state = FridayState(messages=[{"role": "user", "content": case["utterance"]}])
         return case, (await route_node(state))["route"]
 
     results = await asyncio.gather(*(classify(c) for c in cases))

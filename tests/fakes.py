@@ -1,4 +1,4 @@
-"""jarvis-life-os · tests/fakes.py
+"""friday · tests/fakes.py
 
 Fake adapters for network-free graph tests. FakeLLM is scripted: it returns its
 replies in order and fails loudly if asked for more than was scripted.
@@ -64,7 +64,7 @@ class FakeVault:
 
     def append_inbox(self, text: str) -> str:
         self.appended.append(text)
-        return "_inbox/jarvis-notes.md"
+        return "_inbox/friday-notes.md"
 
 
 async def sample_tool(arg: str, utterance: str) -> str:
@@ -82,3 +82,14 @@ class FakeMemory:
 
     async def recall(self, query: str, k: int = 3) -> list[str]:
         return self.facts[:k]
+
+
+class FakeBrain:
+    """A non-streaming route (vault/ops-style): the whole reply arrives in updates."""
+
+    def __init__(self) -> None:
+        self.calls: list[tuple[dict, dict]] = []
+
+    async def astream(self, state, config, *, stream_mode=None):
+        self.calls.append((state, config))
+        yield "updates", {"chat": {"reply": "Indeed, sir.", "route": "chat", "messages": []}}

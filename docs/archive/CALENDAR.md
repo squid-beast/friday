@@ -1,7 +1,7 @@
 # Calendar — Phase D2
 
-Jarvis reads and books your calendar through **macOS EventKit** — whatever
-Calendar.app shows, Jarvis sees. Google Calendar included, IF the Google
+Friday reads and books your calendar through **macOS EventKit** — whatever
+Calendar.app shows, Friday sees. Google Calendar included, IF the Google
 account is added in Calendar.app (Settings → Accounts). No Google API, no
 tokens on disk.
 
@@ -21,7 +21,7 @@ tokens on disk.
 | "Book a meeting with the dentist tomorrow at 3pm" | `calendar_event` parses title/time, then **"Shall I proceed, sir?"** — nothing lands without a spoken yes |
 | "How did the reels do this week?" | `metrics_report` (safe) reads the Mission Board aloud |
 
-No clear date+time in a booking request → Jarvis refuses rather than guesses.
+No clear date+time in a booking request → Friday refuses rather than guesses.
 Every execution is audited; the morning brief now leads with your first event;
 the board gains a `calendar` card (events today) on each collect sweep.
 

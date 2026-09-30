@@ -1,4 +1,4 @@
-"""jarvis-life-os · tests/unit/test_browser_adapter.py
+"""friday · tests/unit/test_browser_adapter.py
 
 adapters/browser.py with browser_use mocked at import time: dedicated profile,
 max-steps cap, missing key refusal. The live browser is acceptance-tested.
@@ -18,7 +18,7 @@ from config.settings import get_settings
 @pytest.fixture(autouse=True)
 def _env(monkeypatch: pytest.MonkeyPatch):
     monkeypatch.setenv("ANTHROPIC_API_KEY", "sk-test")
-    monkeypatch.setenv("BROWSER_PROFILE_DIR", "~/jarvis-chrome")
+    monkeypatch.setenv("BROWSER_PROFILE_DIR", "~/friday-chrome")
     monkeypatch.setenv("BROWSER_MAX_STEPS", "7")
     get_settings.cache_clear()
     yield
@@ -45,7 +45,7 @@ async def test_runs_in_dedicated_profile_with_step_cap(fake_browser_use) -> None
     result = await run_task("book the 9am slot")
     assert result == "Booked the slot."
     profile_kwargs = fake_browser_use.BrowserProfile.call_args.kwargs
-    assert profile_kwargs["user_data_dir"] == str(Path("~/jarvis-chrome").expanduser())
+    assert profile_kwargs["user_data_dir"] == str(Path("~/friday-chrome").expanduser())
     assert "Google Chrome" in profile_kwargs["executable_path"]
     assert fake_browser_use._agent.run.call_args.kwargs["max_steps"] == 7
     agent_kwargs = fake_browser_use.Agent.call_args.kwargs

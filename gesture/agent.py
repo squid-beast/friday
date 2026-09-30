@@ -1,4 +1,4 @@
-"""jarvis-life-os · gesture/agent.py
+"""friday · gesture/agent.py
 
 G1/G2 agent: run the native tracker, publish per-hand landmarks + gestures for
 the /gesture screen, write the live camera frame, and — only while cursor control

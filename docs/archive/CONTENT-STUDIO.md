@@ -13,7 +13,7 @@ n8n (trending scraper, IG creds)              Studio screen (/studio)
 
 ## The two n8n workflows [LOHITH INPUT]
 
-Both use the same `X-Jarvis-Secret` header-auth credential as docs/N8N-SETUP.md.
+Both use the same `X-Friday-Secret` header-auth credential as docs/N8N-SETUP.md.
 
 ### 1. Trending pull — `CONTENT_TRENDING_WEBHOOK` (e.g. `/webhook/content-trending`)
 

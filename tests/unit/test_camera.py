@@ -1,4 +1,4 @@
-"""jarvis-life-os · tests/unit/test_camera.py
+"""friday · tests/unit/test_camera.py
 
 adapters/camera.py mocked: the cut flag refuses before the lens, missing
 imagesnap gets a brew hint, single-invocation capture, describe wiring, and the

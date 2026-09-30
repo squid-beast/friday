@@ -1,4 +1,4 @@
-"""jarvis-life-os · adapters/vault.py
+"""friday · adapters/vault.py
 
 leos-brain access. READ + APPEND-to-inbox only — nothing here can modify or
 delete an existing note. Every path resolves inside VAULT_PATH; hidden dirs and
@@ -127,13 +127,13 @@ def _search_sync(query: str, max_hits: int) -> list[VaultHit]:
 
 
 def append_inbox(text: str) -> str:
-    """Append a timestamped capture to _inbox/jarvis-notes.md. The ONLY vault write."""
+    """Append a timestamped capture to _inbox/friday-notes.md. The ONLY vault write."""
     text = text.strip()
     if not text:
         raise ValueError("refusing to append an empty note")
     inbox = _root() / "_inbox"
     inbox.mkdir(exist_ok=True)
-    target = inbox / "jarvis-notes.md"
+    target = inbox / "friday-notes.md"
     stamp = time.strftime("%Y-%m-%d %H:%M")  # local time — inbox notes read as sir wrote them
     with target.open("a", encoding="utf-8") as f:
         f.write(f"- {stamp} — {text}\n")

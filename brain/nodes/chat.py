@@ -1,6 +1,6 @@
-"""jarvis-life-os · brain/nodes/chat.py
+"""friday · brain/nodes/chat.py
 
-Direct Sonnet answer with the Jarvis persona (config/persona.md — which carries
+Direct Sonnet answer with the Friday persona (config/persona.md — which carries
 the 3-sentence spoken cap). Also home of persona() for the other nodes.
 """
 
@@ -12,7 +12,7 @@ from langgraph.config import get_config, get_stream_writer
 
 from adapters.llm import think as llm_think
 from adapters.llm import think_stream as llm_think_stream
-from brain.state import JarvisState, Message, assistant_reply
+from brain.state import FridayState, Message, assistant_reply
 
 log = logging.getLogger(__name__)
 
@@ -37,16 +37,16 @@ def persona() -> str:
 
 def transcript(messages: list[Message], limit: int = _HISTORY_MESSAGES) -> str:
     lines = [
-        f"{'Sir' if m['role'] == 'user' else 'Jarvis'}: {m['content']}"
+        f"{'Sir' if m['role'] == 'user' else 'Friday'}: {m['content']}"
         for m in messages[-limit:]
     ]
     return "\n".join(lines)
 
 
-async def chat_node(state: JarvisState, *, think=llm_think, stream=llm_think_stream) -> dict:
+async def chat_node(state: FridayState, *, think=llm_think, stream=llm_think_stream) -> dict:
     prompt = (
-        "Continue this spoken conversation. Reply with Jarvis's next line only.\n\n"
-        f"{transcript(state.messages)}\nJarvis:"
+        "Continue this spoken conversation. Reply with Friday's next line only.\n\n"
+        f"{transcript(state.messages)}\nFriday:"
     )
     if _wants_token_stream():
         try:

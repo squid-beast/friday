@@ -1,4 +1,4 @@
-"""jarvis-life-os · tests/unit/test_content.py
+"""friday · tests/unit/test_content.py
 
 Content Studio pipeline: dedupe, status lifecycle, n8n pull/publish contracts,
 the publish audit, and unarmed-webhook refusals. All network mocked.
@@ -86,7 +86,7 @@ def test_set_status_guards(db: Path) -> None:
 async def test_pull_fetches_with_secret_and_stores(db: Path, n8n_env, monkeypatch) -> None:
     requests = _patch(monkeypatch, lambda r: httpx.Response(200, text=json.dumps([TREND])))
     assert await content.pull() == 1
-    assert requests[0].headers["X-Jarvis-Secret"] == "s3cret"
+    assert requests[0].headers["X-Friday-Secret"] == "s3cret"
     assert str(requests[0].url).endswith("/webhook/content-trending")
 
 

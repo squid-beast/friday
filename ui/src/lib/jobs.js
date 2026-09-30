@@ -1,4 +1,4 @@
-/* jarvis-ui · lib/jobs.js — Jobs command center client + live store.
+/* friday-ui · lib/jobs.js — Jobs command center client + live store.
    Polls the tiny local JSON every 5s ONLY while the tab is visible; a click
    writes first, then refreshes at once, so the screen never lags the file. */
 import { writable } from "svelte/store";

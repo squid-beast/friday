@@ -1,6 +1,6 @@
-"""jarvis-life-os · adapters/n8n.py
+"""friday · adapters/n8n.py
 
-Authed webhook caller to the Hostinger n8n. POST + X-Jarvis-Secret header,
+Authed webhook caller to the Hostinger n8n. POST + X-Friday-Secret header,
 10s timeout, exactly ONE retry — and only on transport errors or 5xx; a 4xx is
 a config mistake and fails immediately. Returns the (truncated) response body
 for the spoken summary.
@@ -30,7 +30,7 @@ async def call(webhook_path: str, payload: dict | None = None) -> str:
         for attempt in (1, 2):
             try:
                 response = await client.post(
-                    url, json=payload or {}, headers={"X-Jarvis-Secret": secret}
+                    url, json=payload or {}, headers={"X-Friday-Secret": secret}
                 )
                 if response.status_code >= 500 and attempt == 1:
                     continue  # the one retry

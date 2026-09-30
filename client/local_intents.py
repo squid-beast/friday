@@ -1,4 +1,4 @@
-"""jarvis-life-os · client/local_intents.py
+"""friday · client/local_intents.py
 
 OFFLINE intent matcher + capture-cut executor — zero network, zero vendor
 SDKs. match() runs on every transcript BEFORE any graph/LLM dispatch

@@ -1,4 +1,4 @@
-"""jarvis-life-os · client/control.py
+"""friday · client/control.py
 
 File-based IPC between the surfaces (UI/API, menu bar) and the wake daemon.
 Boring, offline, crash-safe — and under the kill-path law: ZERO network

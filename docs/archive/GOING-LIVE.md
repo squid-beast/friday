@@ -1,6 +1,6 @@
 # GOING LIVE — autonomy, risk, and the payoff
 
-What "deployed" means for Jarvis, what he may do without asking, exactly when
+What "deployed" means for Friday, what he may do without asking, exactly when
 he asks, how risky each surface is, and the gate to run before trusting him.
 Facts below verified 2026-08-15 (all four test levels + doctor green).
 
@@ -23,7 +23,7 @@ a bug, not policy (the one real case: screenpipe's audio pipeline; fixed by
 running `--disable-audio`, which recall never needed). `make doctor` after any
 prompt storm.
 
-**Jarvis's own confirmations (deliberate, per-action, forever):**
+**Friday's own confirmations (deliberate, per-action, forever):**
 these are the product's safety design, not friction. The risk ladder in
 `config/tools.yaml` decides:
 
@@ -60,7 +60,7 @@ Instagram publishing (two deliberate taps in Studio), browser actions
 | 4 | Camera/screen privacy | what the lens/screen sees | offline cuts ("camera off"/"screen off", control files, checked inside adapters), SCREENPIPE_EXCLUDE, single-frame camera by construction | LOW |
 | 5 | API spend runaway | money | max_tokens caps (512/16), extraction gate, no per-turn waste; ~$12–15/mo at 100 turns/day; console.anthropic.com → Usage | LOW |
 | 6 | Prompt injection via content (trending items, web pages) | wrong drafts/posts | Studio requires your two taps to publish; browser tasks confirm-gated, 15-step cap; nothing auto-publishes | LOW-MEDIUM |
-| 7 | Mac is a single point of failure | everything | snapshots to ~/jarvis-snapshots (every change), launchd self-heal; secrets only in .env | accepted by design |
+| 7 | Mac is a single point of failure | everything | snapshots to ~/friday-snapshots (every change), launchd self-heal; secrets only in .env | accepted by design |
 | 8 | Kill path fails when internet is down | can't stop him | kill phrases are LOCAL (no network imports — subprocess-proven), hotkey, menu bar; daemon state truthful | LOW |
 
 Rollback for anything: `make snapshot` history + `tailscale funnel off` +

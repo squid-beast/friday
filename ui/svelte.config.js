@@ -1,6 +1,6 @@
 import adapter from "@sveltejs/adapter-static";
 
-/* jarvis-ui · svelte.config.js — static build only: the gated Python server
+/* friday-ui · svelte.config.js — static build only: the gated Python server
    (integrations/server.py) serves ui/build same-origin; nothing external. */
 export default {
   kit: {

@@ -10,7 +10,7 @@
 
 - **Approvals:** a role is approved when Lohith clicks **Approve** on `/jobs` *or* says "approve" / "submit all" /
   numbers. Skip = never submitted. (Runbook + nightly task already updated.)
-- **Removed:** Screenpipe (agent stopped, plist moved to `~/jarvis-snapshots/removed/`, 26 GB of recordings
+- **Removed:** Screenpipe (agent stopped, plist moved to `~/friday-snapshots/removed/`, 26 GB of recordings
   deleted). Replace later with on-demand screen reading (Phase 5).
 - **Parked (not running, no UI):** gesture control, Content Studio panel.
 - **Wanted voice behaviour:** "Hey Friday" → talks back. Then single, precise actions — "open Spotify and play my
@@ -24,14 +24,14 @@
 
 ## Phase 1 — Stabilize (fix what's broken)
 **Goal:** every service that should run, runs; nothing crash-loops.
-1. Delete launchd templates `launchd/com.jarvis.screenpipe.plist` and `launchd/com.jarvis.moondream.plist`
-   (moondream is removed in Phase 3); unload `com.jarvis.moondream` on the Mac.
-2. `make install-launchd` so every remaining agent points at `~/friday` (not `~/Jarvis Life OS`).
+1. Delete launchd templates `launchd/com.friday.screenpipe.plist` and `launchd/com.friday.moondream.plist`
+   (moondream is removed in Phase 3); unload `com.friday.moondream` on the Mac.
+2. `make install-launchd` so every remaining agent points at `~/friday` (not `~/Friday`).
 3. `uv sync --reinstall` (the venv console scripts still carry the old path).
 4. Wake behaviour: set `WAKE_APPS_ENABLED=false` in `.env` (no apps/tabs on wake). Keep the `open_apps` tool.
 5. Jobs API: give every jobs endpoint a hard timeout (a blocked `~/Downloads` read must return 503, not hang).
    Document the one-time macOS permission (Privacy & Security → Files and Folders → Downloads) in `docs/SETUP.md`.
-6. Archive `~/Jarvis Life OS/data/logs` → `~/jarvis-snapshots/old-logs-2026-09-28.tar.gz`, then remove the folder
+6. Archive `~/Friday/data/logs` → `~/friday-snapshots/old-logs-2026-09-28.tar.gz`, then remove the folder
    (ask Lohith before deleting).
 **Accept:** `launchctl print` shows dashboard, killswitch, metrics, logrotate healthy; voiceworker/livekit either
 healthy or intentionally unloaded; `/jobs` loads data; unit suite green.

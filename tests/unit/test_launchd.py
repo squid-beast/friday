@@ -1,4 +1,4 @@
-"""jarvis-life-os · tests/unit/test_launchd.py
+"""friday · tests/unit/test_launchd.py
 
  launchd templates: valid plist XML, truthful labels, crash-restart where it
  matters, logs under the external state dir. Installer script must at least parse.
@@ -16,15 +16,13 @@ _PLISTS = sorted(_LAUNCHD.glob("*.plist"))
 
 def test_all_agents_present() -> None:
     assert [p.name for p in _PLISTS] == [
-        "com.jarvis.dashboard.plist",
-        "com.jarvis.killswitch.plist",
-        "com.jarvis.livekit.plist",
-        "com.jarvis.logrotate.plist",
-        "com.jarvis.metrics.plist",
-        "com.jarvis.moondream.plist",
-        "com.jarvis.screenpipe.plist",
-        "com.jarvis.voiceworker.plist",
-    ]
+        "com.friday.dashboard.plist",
+        "com.friday.killswitch.plist",
+        "com.friday.livekit.plist",
+        "com.friday.logrotate.plist",
+        "com.friday.metrics.plist",
+        "com.friday.voiceworker.plist",
+    ]  # screenpipe + moondream agents removed 2026-09-29 (Phase 1)
 
 
 @pytest.mark.parametrize("path", _PLISTS, ids=lambda p: p.stem)
@@ -37,8 +35,7 @@ def test_plist_parses_with_label_and_program(path: Path) -> None:
 
 @pytest.mark.parametrize(
     "stem",
-    ["com.jarvis.killswitch", "com.jarvis.screenpipe", "com.jarvis.dashboard",
-     "com.jarvis.moondream", "com.jarvis.voiceworker"],
+    ["com.friday.killswitch", "com.friday.dashboard", "com.friday.voiceworker"],
 )
 def test_long_running_agents_crash_restart(stem: str) -> None:
     data = plistlib.loads((_LAUNCHD / f"{stem}.plist").read_bytes())
@@ -46,11 +43,11 @@ def test_long_running_agents_crash_restart(stem: str) -> None:
 
 
 def test_livekit_retries_only_until_success() -> None:
-    data = plistlib.loads((_LAUNCHD / "com.jarvis.livekit.plist").read_bytes())
+    data = plistlib.loads((_LAUNCHD / "com.friday.livekit.plist").read_bytes())
     assert data["KeepAlive"] == {"SuccessfulExit": False}  # retry while Docker warms up
 
 
-@pytest.mark.parametrize("stem", ["com.jarvis.metrics", "com.jarvis.logrotate"])
+@pytest.mark.parametrize("stem", ["com.friday.metrics", "com.friday.logrotate"])
 def test_hourly_timers_are_sweeps_not_daemons(stem: str) -> None:
     data = plistlib.loads((_LAUNCHD / f"{stem}.plist").read_bytes())
     assert data["StartInterval"] == 3600
@@ -65,7 +62,7 @@ def test_logs_land_under_state_logs(path: Path) -> None:
 
 
 def test_killswitch_runs_healthcheck_first() -> None:
-    data = plistlib.loads((_LAUNCHD / "com.jarvis.killswitch.plist").read_bytes())
+    data = plistlib.loads((_LAUNCHD / "com.friday.killswitch.plist").read_bytes())
     command = " ".join(data["ProgramArguments"])
     assert "healthcheck --quick" in command  # healthcheck-first startup (TESTING.md)
     assert command.index("healthcheck") < command.index("killswitch")

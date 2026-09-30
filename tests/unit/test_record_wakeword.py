@@ -1,4 +1,4 @@
-"""jarvis-life-os · tests/unit/test_record_wakeword.py
+"""friday · tests/unit/test_record_wakeword.py
 
 Recorder plan math + wav writing (sounddevice mocked — no real mic).
 """

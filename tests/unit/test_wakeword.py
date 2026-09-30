@@ -1,4 +1,4 @@
-"""jarvis-life-os · tests/unit/test_wakeword.py
+"""friday · tests/unit/test_wakeword.py
 
 adapters/wakeword.py with sounddevice + openwakeword mocked: detection at
 threshold, stop event, model selection (bundled fallback vs custom paths).

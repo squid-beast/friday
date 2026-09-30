@@ -3,22 +3,27 @@
 <plist version="1.0">
 <dict>
 	<key>Label</key>
-	<string>com.jarvis.metrics</string>
+	<string>com.friday.dashboard</string>
 	<key>ProgramArguments</key>
 	<array>
 		<string>/bin/bash</string>
 		<string>-c</string>
-		<string>cd "__REPO__" &amp;&amp; exec "__UV__" run python -m integrations.collect</string>
+		<string>cd "__REPO__" &amp;&amp; exec "__UV__" run python -m integrations.server</string>
 	</array>
 	<key>WorkingDirectory</key>
 	<string>__REPO__</string>
+	<key>EnvironmentVariables</key>
+	<dict>
+		<key>PATH</key>
+		<string>/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin</string>
+	</dict>
 	<key>RunAtLoad</key>
 	<true/>
-	<key>StartInterval</key>
-	<integer>3600</integer>
+	<key>KeepAlive</key>
+	<true/>
 	<key>StandardOutPath</key>
-	<string>__STATE__/logs/metrics.log</string>
+	<string>__STATE__/logs/dashboard.log</string>
 	<key>StandardErrorPath</key>
-	<string>__STATE__/logs/metrics.log</string>
+	<string>__STATE__/logs/dashboard.log</string>
 </dict>
 </plist>

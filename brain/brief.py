@@ -1,8 +1,8 @@
-"""jarvis-life-os · brain/brief.py
+"""friday · brain/brief.py
 
 Spoken morning brief, once per day on the first wake. The once-marker is a
 "brief" event in the audit log — restart-safe, no extra state file. Grounded
-only in what Jarvis actually has: the date and remembered facts.
+only in what Friday actually has: the date and remembered facts.
 """
 
 import logging

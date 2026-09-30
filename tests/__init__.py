@@ -1,4 +1,4 @@
-"""jarvis-life-os · tests/__init__.py
+"""friday · tests/__init__.py
 
 Purpose: Package marker.
 Filled in: Phase 1

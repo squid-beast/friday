@@ -1,4 +1,4 @@
-"""jarvis-life-os · voice/agent.py
+"""friday · voice/agent.py
 
 LiveKit Agents worker: VAD -> STT -> brain graph -> TTS with barge-in.
 Since Phase 2 the reply comes from the LangGraph brain; since Phase 3 every
@@ -41,7 +41,7 @@ def touch_stand_down() -> None:
 
 
 async def silence_watchdog(
-    agent: "JarvisAgent",
+    agent: "FridayAgent",
     *,
     timeout_s: float | None = None,
     poll_s: float = 5.0,
@@ -67,7 +67,7 @@ def _last_user_text(chat_ctx: Any) -> str:
     return ""
 
 
-class JarvisAgent(agents.Agent):
+class FridayAgent(agents.Agent):
     """Voice pipeline agent whose 'LLM' is the whole brain graph."""
 
     def __init__(self, brain: Any, thread_id: str) -> None:
@@ -140,7 +140,7 @@ async def entrypoint(ctx: agents.JobContext) -> None:
         llm=get_llm(),  # unused by llm_node; keeps pipeline internals happy
         tts=get_tts(),
     )
-    agent = JarvisAgent(brain, thread_id=ctx.room.name or "local")
+    agent = FridayAgent(brain, thread_id=ctx.room.name or "local")
     await session.start(agent=agent, room=ctx.room)
     agent.watchdog = asyncio.create_task(silence_watchdog(agent))  # ref kept against GC
     brief = await morning_brief()  # non-None only on the first wake of the day

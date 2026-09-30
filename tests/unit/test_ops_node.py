@@ -1,4 +1,4 @@
-"""jarvis-life-os · tests/unit/test_ops_node.py
+"""friday · tests/unit/test_ops_node.py
 
 ops_select / ops_execute with fakes: registry edge cases, audit queries,
 execution failure apologies. The confirm-gate invariants live in
@@ -12,7 +12,7 @@ from brain.nodes.ops import (
     ops_execute_node,
     ops_select_node,
 )
-from brain.state import JarvisState
+from brain.state import FridayState
 from config.tools import Tool
 from tests.fakes import BrokenLLM, FakeLLM
 
@@ -25,8 +25,8 @@ TOOL = Tool(
 )
 
 
-def _state(utterance: str, pending: str = "") -> JarvisState:
-    return JarvisState(
+def _state(utterance: str, pending: str = "") -> FridayState:
+    return FridayState(
         messages=[{"role": "user", "content": utterance}], pending_tool=pending
     )
 

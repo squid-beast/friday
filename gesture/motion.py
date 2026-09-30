@@ -1,4 +1,4 @@
-"""jarvis-life-os · gesture/motion.py
+"""friday · gesture/motion.py
 
 Motion-gesture detection over time (G3). Pure + stateful: fed the per-frame hand
 list + a timestamp, it returns ONE action name or None. No I/O, no Mac control —

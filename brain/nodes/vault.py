@@ -1,4 +1,4 @@
-"""jarvis-life-os · brain/nodes/vault.py
+"""friday · brain/nodes/vault.py
 
 Vault questions: search leos-brain + recall remembered facts -> synthesized
 in-persona answer, grounded ONLY in that context. Note-taking phrases append to
@@ -13,7 +13,7 @@ from adapters import memory as memory_adapter
 from adapters import vault as vault_adapter
 from adapters.llm import think as llm_think
 from brain.nodes.chat import LLM_APOLOGY, persona
-from brain.state import JarvisState, assistant_reply, last_user
+from brain.state import FridayState, assistant_reply, last_user
 
 log = logging.getLogger(__name__)
 
@@ -28,7 +28,7 @@ _NOTE_RE = re.compile(
 
 _PROMPT = """\
 Answer sir's question using ONLY the context below, from his own vault and memory.
-If the context does not contain the answer, say so plainly. Speak as Jarvis.
+If the context does not contain the answer, say so plainly. Speak as Friday.
 
 Question: {question}
 
@@ -37,7 +37,7 @@ Context:
 
 
 async def vault_node(
-    state: JarvisState,
+    state: FridayState,
     *,
     think=llm_think,
     search=vault_adapter.search,

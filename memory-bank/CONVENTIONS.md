@@ -34,7 +34,7 @@ Replace the single file in adapters/ keeping the same interface signature. Nothi
 - scripts/ run as modules from repo root: `uv run python -m scripts.healthcheck`.
 
 ## Brain/node pattern (established Phase 2)
-- Nodes are async functions of JarvisState with adapter deps as keyword args defaulting to
+- Nodes are async functions of FridayState with adapter deps as keyword args defaulting to
   the real adapters; tests pass fakes from tests/fakes.py (FakeLLM is scripted and fails
   loudly when over-asked). build_graph(checkpointer, *, think, search, ...) binds overrides.
 - Nodes never raise: every adapter failure becomes an in-persona apology line in `reply`.
@@ -59,7 +59,7 @@ Replace the single file in adapters/ keeping the same interface signature. Nothi
 
 ## Memory discipline
 - Project memory: memory-bank/*.md — updated ONLY via /wrap at session end.
-- Runtime memory: Jarvis's own (vault + mem0) — code never writes to memory-bank.
+- Runtime memory: Friday's own (vault + mem0) — code never writes to memory-bank.
 
 ## Testing (full rules: docs/TESTING.md — mandatory)
 - Pyramid: L1 unit (mocked, <5s, every change) -> L2 integration (real sqlite/chroma, fake LLM)
@@ -88,3 +88,19 @@ Replace the single file in adapters/ keeping the same interface signature. Nothi
   the custom model exists. The UI/API must report the real armed state, not the wish.
 - Voice-lock language must stay precise: current scope is `wake-only` unless full
   per-utterance speaker verification is actually implemented.
+
+## Naming (2026-09-29, Lohith's call)
+- The product, packages, identifiers, labels (`com.friday.*`), paths and docs are
+  **Friday**. Never introduce "jarvis" in new code or docs.
+- Sole exception: the literal "Hey Jarvis" where it names the bundled fallback
+  wake model that is really armed (UI truthfulness). Remove it once the custom
+  "Hey Friday" model is trained.
+
+## HTTP shell pattern (2026-09-29)
+- Endpoints live in route-group modules (`integrations/api*.py`, `jobs_api.py`)
+  that export `GET_API`/`POST_API` dicts; server.py registers them in one loop.
+  A new endpoint group = a new module, never a growing api.py.
+- Request-handler concerns are mixins: `access.AccessGate` (key wall),
+  `static_files.StaticFiles` (contained serving). server.py only routes.
+- API tests use `tests/api_harness.py` helpers + the `served` fixture in
+  tests/unit/conftest.py.

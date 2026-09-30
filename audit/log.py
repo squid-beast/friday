@@ -1,4 +1,4 @@
-"""jarvis-life-os · audit/log.py
+"""friday · audit/log.py
 
 Append-only SQLite audit at data/audit.db. Phase 3 lands session events
 (PLAN §5 P3: "session events -> audit"); Phase 4 adds tool executions on the

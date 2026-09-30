@@ -1,4 +1,4 @@
-# JARVIS SETUP — every key, every integration, in order
+# FRIDAY SETUP — every key, every integration, in order
 
 The one document that takes the system from "code complete" to "demo ready".
 Do the stages in order; each ends with a verification command. Total hands-on
@@ -7,7 +7,7 @@ time: ~1 hour + the 30-minute wake-phrase recording.
 All secrets go in ONE place: `.env` at the repo root. Never anywhere else.
 
 ```bash
-cd "/Users/lohithkumar/Jarvis Life OS"
+cd "/Users/lohithkumar/Friday"
 cp .env.example .env && open -e .env
 ```
 
@@ -23,7 +23,7 @@ what's unlocked *today* while later stages are pending.
 | **Typed chat + app** | `make dashboard` → http://127.0.0.1:8787 | Board / Chat / Studio / Today in the browser; typed chat talks to the full brain (vault, memory, gates, audit) | Anthropic key only — **works now** |
 | **Talk (console)** | `make voice` | Full voice conversation on the Mac's mic/speakers with barge-in. No Docker, no wake phrase — press Ctrl-C to stop. The Phase 2 acceptance path | All 3 Stage 1 keys + mic permission |
 | **Hands-free (menu bar)** | `uv run python -m client.killswitch` | 😴 in the menu bar; the bundled fallback is "Hey Jarvis" until you train Friday, then "Hey Friday" wakes him. "Stand Down" / ⌥⌘J kills. This is daily-driver mode, started by hand | Same as voice |
-| **Everything, on login** | `make install-launchd` → reboot | All five agents forever: killswitch, screenpipe, livekit (Docker), hourly metrics, dashboard. Zero terminals | Stage 2; Docker Desktop set to start at login |
+| **Everything, on login** | `make install-launchd` → reboot | All six agents forever: dashboard, killswitch, voiceworker, livekit (Docker), hourly metrics, hourly logrotate. Zero terminals | Stage 2; Docker Desktop set to start at login |
 | **Phone** | Stage 5 (`tailscale serve`) → PWA on the iPhone | Board/Chat/Studio/Today from anywhere on the tailnet; the Voice tab additionally needs `make run` on the Mac | Stage 5 |
 
 Utility surfaces: `make doctor` (health), `make eval` (router accuracy vs the
@@ -63,7 +63,7 @@ free credit — historically ~$200, months of personal use.)
 openssl rand -hex 32   # run twice; use one for each below
 ```
 - `.env`: `LIVEKIT_API_SECRET=<first value>`
-- `.env`: `JARVIS_PIN=<a 4-digit number you'll SAY out loud>` — this locks the
+- `.env`: `FRIDAY_PIN=<a 4-digit number you'll SAY out loud>` — this locks the
   highest-risk tools; unset = they refuse entirely.
 
 ### ✅ Verify Stage 1
@@ -90,9 +90,11 @@ That's Phase 2 acceptance done.
 make install-launchd
 ```
 
-Installs five launch agents: killswitch (menu bar 😴/🎙 + ⌥⌘J), screenpipe,
-livekit (docker), hourly metrics, dashboard. macOS will prompt for
-**Accessibility** (the global hotkey) — allow. Docker Desktop itself must be
+Installs six `com.friday.*` launch agents: dashboard, killswitch (menu bar
+😴/🎙), voiceworker (phone voice), livekit (docker), hourly metrics, hourly
+logrotate. Screenpipe + moondream agents were removed 2026-09-29 (doctor
+reports them "dark by design"). If you set `HOTKEY`, macOS will prompt for
+**Accessibility** — allow. Docker Desktop itself must be
 set to start at login: Docker Desktop → Settings → General → "Start Docker
 Desktop when you sign in".
 
@@ -130,7 +132,7 @@ doesn't silently break the eyes:
    nonsense, re-pin:
    ```bash
    ~/.moondream-station/venv/bin/pip install "transformers==4.46.3"
-   launchctl kickstart -k gui/$(id -u)/com.jarvis.moondream
+   launchctl kickstart -k gui/$(id -u)/com.friday.moondream
    ```
 
 First camera use triggers the macOS **Camera** permission — allow. Inference is
@@ -159,7 +161,7 @@ Full walkthrough: **docs/archive/N8N-SETUP.md**. Summary:
 
 1. `openssl rand -hex 32` → `.env`: `N8N_WEBHOOK_SECRET=...` and
    `.env`: `N8N_BASE_URL=https://<your-n8n-domain>`
-2. In n8n, create ONE header-auth credential: name `X-Jarvis-Secret`, value =
+2. In n8n, create ONE header-auth credential: name `X-Friday-Secret`, value =
    that same hex. Reuse it on every webhook below.
 3. Build your five action workflows (Webhook trigger, POST, header auth →
    your logic → respond). Then register them in **config/tools.yaml** —
@@ -201,7 +203,7 @@ Two workflows:
 ### ✅ Verify Stage 4
 
 ```bash
-curl -s -X POST "$N8N_BASE_URL/webhook/<path>" -H "X-Jarvis-Secret: <hex>" -d '{}'
+curl -s -X POST "$N8N_BASE_URL/webhook/<path>" -H "X-Friday-Secret: <hex>" -d '{}'
 make voice   # "run my content pipeline" → "Shall I proceed, sir?" → "yes"
              # then: "what did you do today?" → he reads it back
 ```
@@ -284,7 +286,7 @@ Three clean runs in a row = v1 COMPLETE. Log failed attempts in its table.
 | DEEPGRAM_API_KEY | console.deepgram.com → API Keys | 1 |
 | CARTESIA_API_KEY / TTS_VOICE_ID | play.cartesia.ai → API Keys / Voices | 1 |
 | LIVEKIT_API_SECRET | `openssl rand -hex 32` | 1 |
-| JARVIS_PIN | you pick 4 digits | 1 |
+| FRIDAY_PIN | you pick 4 digits | 1 |
 | SCREENPIPE_EXCLUDE | you list apps | 3 |
 | N8N_BASE_URL / N8N_WEBHOOK_SECRET | your Hostinger n8n / openssl | 4 |
 | CONTENT_TRENDING_WEBHOOK / CONTENT_PUBLISH_WEBHOOK | your n8n workflows | 4 |
@@ -339,4 +341,4 @@ Deliberately NOT done (so nobody "adds" them later):
 If cost ever spikes: `make doctor` won't show it — check
 console.anthropic.com → Usage. The knobs are `MODEL_SMART` / `MODEL_FAST`
 in `.env` (dropping MODEL_SMART to `claude-haiku-4-5` cuts ~80% of spend at
-the price of a duller Jarvis).
+the price of a duller Friday).

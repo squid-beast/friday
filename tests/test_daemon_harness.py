@@ -1,6 +1,6 @@
-"""jarvis-life-os · tests/test_daemon_harness.py
+"""friday · tests/test_daemon_harness.py
 
-Shared daemon test rig: JarvisDaemon wired to fakes (wake on demand, scripted
+Shared daemon test rig: FridayDaemon wired to fakes (wake on demand, scripted
 agent process, counted chimes, captured audit). No network, no real audio.
 Used by test_daemon.py (state machine) and test_daemon_control.py (UI IPC).
 """
@@ -11,7 +11,7 @@ import time
 from pathlib import Path
 from unittest.mock import MagicMock
 
-from client.daemon import JarvisDaemon, SessionState
+from client.daemon import FridayDaemon, SessionState
 
 
 def wait_until(cond, timeout: float = 2.0) -> None:
@@ -52,7 +52,7 @@ class Harness:
         def audit(kind: str, detail: str = "") -> None:
             self.events.append((kind, detail))
 
-        self.daemon = JarvisDaemon(
+        self.daemon = FridayDaemon(
             spawn=spawn,
             stop_agent=lambda p: p.send_signal(signal.SIGINT),
             listen=listen,

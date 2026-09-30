@@ -1,4 +1,4 @@
-"""jarvis-life-os · tests/unit/test_graph.py
+"""friday · tests/unit/test_graph.py
 
 The wired brain with fakes end-to-end: routing reaches the right node, unarmed
 routes stay polite, history survives across turns of one thread.
@@ -72,7 +72,7 @@ def test_tracing_arms_only_with_a_key(monkeypatch) -> None:
     get_settings.cache_clear()
     _arm_tracing()
     assert os.environ["LANGSMITH_TRACING"] == "true"
-    assert os.environ["LANGSMITH_PROJECT"] == "jarvis"
+    assert os.environ["LANGSMITH_PROJECT"] == "friday"
     get_settings.cache_clear()
 
 
@@ -90,10 +90,10 @@ def test_unknown_route_still_falls_back_to_unarmed() -> None:
     """All five routes are armed since Phase 5; the unarmed node stays as the
     guard for an impossible/empty route so the graph can never dead-end."""
     from brain.graph import _pick
-    from brain.state import JarvisState
+    from brain.state import FridayState
 
-    assert _pick(JarvisState(route="")) == "unarmed"
-    assert _pick(JarvisState(route="nonsense")) == "unarmed"
+    assert _pick(FridayState(route="")) == "unarmed"
+    assert _pick(FridayState(route="nonsense")) == "unarmed"
 
 
 async def test_history_carries_across_turns_same_thread() -> None:

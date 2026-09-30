@@ -1,4 +1,4 @@
-"""jarvis-life-os · tests/unit/test_fallbacks.py
+"""friday · tests/unit/test_fallbacks.py
 
 Coverage audit (Phase 7): every degraded path still speaks. These are the
 think-failure and backend-failure branches the happy-path suites skip.
@@ -18,13 +18,13 @@ from brain.nodes.vision import (
     recall_node,
     vision_execute_node,
 )
-from brain.state import JarvisState
+from brain.state import FridayState
 from config.tools import Tool
 from tests.fakes import BrokenLLM, FakeLLM, FakeMemory, FakeVault
 
 
-def _state(utterance: str, **kw) -> JarvisState:
-    return JarvisState(messages=[{"role": "user", "content": utterance}], **kw)
+def _state(utterance: str, **kw) -> FridayState:
+    return FridayState(messages=[{"role": "user", "content": utterance}], **kw)
 
 
 class Audit:

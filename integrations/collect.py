@@ -1,4 +1,4 @@
-"""jarvis-life-os · integrations/collect.py
+"""friday · integrations/collect.py
 
 The collection sweep: local health + every configured n8n platform pull.
 Run by the hourly launchd timer, or by hand: uv run python -m integrations.collect
@@ -8,7 +8,7 @@ import asyncio
 import logging
 import sys
 
-from integrations import jarvis_health, n8n_pull, store
+from integrations import friday_health, n8n_pull, store
 
 log = logging.getLogger(__name__)
 
@@ -27,7 +27,7 @@ async def calendar_count(*, record=store.record) -> int:
 
 
 async def run() -> int:
-    written = jarvis_health.collect()
+    written = friday_health.collect()
     written += await calendar_count()
     written += await n8n_pull.collect()
     return written

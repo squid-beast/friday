@@ -1,4 +1,4 @@
-"""jarvis-life-os · integrations/content.py
+"""friday · integrations/content.py
 
 Content Studio: n8n pulls what's TRENDING (its credentials, its scrapers);
 sir reviews here, edits the caption, and publishes to Instagram through n8n.
@@ -132,7 +132,7 @@ async def pull(*, store=upsert) -> int:
     """Fetch trending items from n8n; returns how many NEW items landed."""
     url, secret = _webhook_url(get_settings().content_trending_webhook)
     async with httpx.AsyncClient(timeout=_TIMEOUT_S) as client:
-        response = await client.post(url, json={}, headers={"X-Jarvis-Secret": secret})
+        response = await client.post(url, json={}, headers={"X-Friday-Secret": secret})
         response.raise_for_status()
         rows = response.json()
     return store(rows if isinstance(rows, list) else [])
@@ -148,7 +148,7 @@ async def publish(item_id: str, caption: str, *, audit=log_tool,
     payload = {"id": item.id, "title": item.title, "url": item.url,
                "source": item.source, "caption": caption or item.hook or item.title}
     async with httpx.AsyncClient(timeout=_TIMEOUT_S) as client:
-        response = await client.post(url, json=payload, headers={"X-Jarvis-Secret": secret})
+        response = await client.post(url, json=payload, headers={"X-Friday-Secret": secret})
         response.raise_for_status()
         result = response.text[:300]
     mark(item_id, "posted", payload["caption"], db=db)

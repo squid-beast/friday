@@ -1,4 +1,4 @@
-"""jarvis-life-os · scripts/healthcheck.py
+"""friday · scripts/healthcheck.py
 
 --quick (SessionStart hook): env keys present + local port probes. Prints WARN
 lines but ALWAYS exits 0 — a broken service must never block a session.
@@ -10,7 +10,6 @@ import asyncio
 import socket
 import sys
 from collections.abc import Awaitable, Callable
-from urllib.parse import urlparse
 
 import httpx
 
@@ -18,11 +17,6 @@ from config.settings import get_settings
 
 _KEY_FIELDS = ("anthropic_api_key", "deepgram_api_key", "cartesia_api_key")
 _HTTP_TIMEOUT_S = 5.0
-
-
-def _url_port(url: str, default: int) -> tuple[str, int]:
-    parsed = urlparse(url)
-    return parsed.hostname or "127.0.0.1", parsed.port or default
 
 
 def port_open(host: str, port: int, timeout: float = 0.5) -> bool:
@@ -42,10 +36,6 @@ def quick() -> list[str]:
         warns.append("WARN: strict owner-voice wake is on, but WAKE_VERIFIER_PATH is missing")
     if not port_open("127.0.0.1", 7880):
         warns.append("WARN: livekit down (docker compose up -d; console mode works without it)")
-    if not port_open(*_url_port(settings.screenpipe_url, 3030)):
-        warns.append("WARN: screenpipe down (screen recall dark until it runs)")
-    if not port_open(*_url_port(settings.moondream_endpoint, 2020)):
-        warns.append("WARN: moondream station down (camera sight dark until it runs)")
     return warns
 
 
@@ -78,19 +68,6 @@ async def check_cartesia() -> None:
         response.raise_for_status()
 
 
-async def check_screenpipe() -> None:
-    async with httpx.AsyncClient(timeout=_HTTP_TIMEOUT_S) as client:
-        response = await client.get(f"{get_settings().screenpipe_url}/health")
-        response.raise_for_status()
-
-
-async def check_moondream() -> None:
-    async with httpx.AsyncClient(timeout=_HTTP_TIMEOUT_S) as client:
-        response = await client.get(get_settings().moondream_endpoint)
-    if response.status_code >= 500:  # any response < 500 means the station is up
-        raise ValueError(f"moondream station unhealthy: {response.status_code}")
-
-
 async def check_n8n() -> None:
     settings = get_settings()
     if not settings.n8n_base_url:
@@ -107,12 +84,13 @@ async def check_chroma() -> None:
     await recall("healthcheck ping")  # embedded store: open + query round trip
 
 
+# Off on purpose (their launchd agents were removed 2026-09-29) — reported, never failed.
+DARK_BY_DESIGN = "INFO: dark by design — screen recall (screenpipe) + camera sight (moondream)"
+
 CHECKS: dict[str, Callable[[], Awaitable[None]]] = {
     "anthropic": check_anthropic,
     "deepgram": check_deepgram,
     "cartesia": check_cartesia,
-    "screenpipe": check_screenpipe,
-    "moondream": check_moondream,
     "n8n": check_n8n,
     "chroma": check_chroma,
 }
@@ -137,11 +115,11 @@ def main(argv: list[str] | None = None) -> int:
             warns = quick()
         except Exception as exc:
             warns = [f"WARN: settings invalid: {' '.join(str(exc).split())}"]
-        for line in warns:
+        for line in [*warns, DARK_BY_DESIGN]:
             print(line)
         return 0
     failures = asyncio.run(full())
-    for line in failures:
+    for line in [*failures, DARK_BY_DESIGN]:
         print(line)
     print("all clear, sir" if not failures else f"{len(failures)} check(s) failed")
     return 1 if failures else 0

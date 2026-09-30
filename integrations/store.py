@@ -1,7 +1,7 @@
-"""jarvis-life-os · integrations/store.py
+"""friday · integrations/store.py
 
 Metrics store: append-only SQLite at data/metrics.db. Collectors write points;
-the dashboard (and later, Jarvis's voice) reads summaries. Boring persistence,
+the dashboard (and later, Friday's voice) reads summaries. Boring persistence,
 same shape as audit/log.py.
 """
 

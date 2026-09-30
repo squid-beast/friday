@@ -1,4 +1,4 @@
-"""jarvis-life-os · tests/unit/test_voice_server.py
+"""friday · tests/unit/test_voice_server.py
 
 Phase 7.6 voice routes: page + vendored SDK serve, token refusal when
 unconfigured, and the JWT is scoped to the phone room only.

@@ -1,4 +1,4 @@
-"""jarvis-life-os · tests/unit/test_audit.py
+"""friday · tests/unit/test_audit.py
 
 audit/log.py: append + read roundtrip, ordering, since-filter, missing db.
 """

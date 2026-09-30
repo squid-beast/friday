@@ -1,4 +1,4 @@
-"""jarvis-life-os · adapters/stt.py
+"""friday · adapters/stt.py
 
 Deepgram STT + Silero VAD factories (LiveKit components). Swap for local
 whisper later = change this file only.

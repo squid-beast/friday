@@ -1,4 +1,4 @@
-"""jarvis-life-os · adapters/memory.py
+"""friday · adapters/memory.py
 
 Long-term facts: embedded Chroma (PersistentClient under CHROMA_PATH), local
 ONNX embeddings. remember(fact) / recall(query) — the whole interface.
@@ -13,7 +13,7 @@ import chromadb
 
 from config.settings import get_settings
 
-_COLLECTION = "jarvis_facts"
+_COLLECTION = "friday_facts"
 _client: chromadb.ClientAPI | None = None
 
 

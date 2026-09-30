@@ -1,5 +1,5 @@
-# Jarvis Life OS
-Personal voice-first AI assistant ("Jarvis") for Lohith. SECRET project — local only, NO git, no remotes, never reference it outside this folder.
+# Friday
+Personal voice-first AI assistant ("Friday") for Lohith. SECRET project — private GitHub remote only (squid-beast/friday), secrets never committed, never reference it outside this folder.
 
 @memory-bank/PROJECT.md
 @memory-bank/PROGRESS.md
@@ -17,5 +17,5 @@ Personal voice-first AI assistant ("Jarvis") for Lohith. SECRET project — loca
 - n8n-FIRST RULE: if a capability can be an n8n workflow, build it in n8n and register it in tools.yaml — core code is ONLY for voice, brain, memory, vision, safety. Post-v1 backlog lives in README.md (routes: CORE/N8N/HYBRID).
 - Files <= 200 lines. make lint && make test must pass before finishing.
 - TESTS ARE PART OF THE FEATURE (docs/TESTING.md): unit tests in the same session as the code; safety code (kill switches, confirm gate, path allowlists) is TDD — failing test first; router/prompt changes require updating the eval set; never skip/delete a failing test to pass a phase.
-- NO git commands, ever. Safety = make snapshot.
+- Git: private remote allowed; commit/push only when Lohith asks; never commit .env*, data/, keys. Safety net = make snapshot.
 - End EVERY session by running /wrap.

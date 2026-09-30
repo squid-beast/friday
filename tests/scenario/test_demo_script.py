@@ -1,4 +1,4 @@
-"""jarvis-life-os · tests/scenario/test_demo_script.py
+"""friday · tests/scenario/test_demo_script.py
 
 L4: docs/DEMO-SCRIPT.md steps 2-7 as ONE continuous thread through the real
 graph (fake adapters, real routing/gates/checkpointing). Steps 1 and 8 are

@@ -1,4 +1,4 @@
-"""jarvis-life-os · tests/unit/test_tools_registry.py
+"""friday · tests/unit/test_tools_registry.py
 
 config/tools.py: valid entries load typed, bad entries fail LOUDLY at load —
 a typo'd risk level must never silently become an unguarded tool.

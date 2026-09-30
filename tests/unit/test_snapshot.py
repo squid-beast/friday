@@ -10,7 +10,7 @@ import time
 from pathlib import Path
 
 SCRIPT = Path(__file__).parents[2] / "scripts" / "snapshot.sh"
-NAME_RE = re.compile(r"^jarvis-\d{8}-\d{4}$")
+NAME_RE = re.compile(r"^friday-\d{8}-\d{4}$")
 
 
 def run_snapshot(
@@ -67,17 +67,17 @@ def test_prunes_to_last_20(tmp_path: Path) -> None:
     dest = tmp_path / "snaps"
     dest.mkdir()
     now = time.time()
-    for i in range(21):  # oldest = jarvis-20240101-0000, newest seeded = -0020
-        old = dest / f"jarvis-20240101-{i:04d}"
+    for i in range(21):  # oldest = friday-20240101-0000, newest seeded = -0020
+        old = dest / f"friday-20240101-{i:04d}"
         old.mkdir()
         os.utime(old, (now - 3600 + i, now - 3600 + i))
     result = run_snapshot(make_source(tmp_path), dest)
     assert result.returncode == 0, result.stderr
     remaining = sorted(d.name for d in dest.iterdir() if d.is_dir())
     assert len(remaining) == 20
-    assert "jarvis-20240101-0000" not in remaining  # two oldest pruned
-    assert "jarvis-20240101-0001" not in remaining
-    assert any(NAME_RE.match(n) and not n.startswith("jarvis-20240101") for n in remaining)
+    assert "friday-20240101-0000" not in remaining  # two oldest pruned
+    assert "friday-20240101-0001" not in remaining
+    assert any(NAME_RE.match(n) and not n.startswith("friday-20240101") for n in remaining)
 
 
 def test_prune_cannot_delete_outside_snapshot_dir(tmp_path: Path) -> None:
@@ -88,12 +88,12 @@ def test_prune_cannot_delete_outside_snapshot_dir(tmp_path: Path) -> None:
     workdir = tmp_path / "cwd"
     victim = workdir / "VICTIM"
     victim.mkdir(parents=True)
-    hostile = dest / "jarvis-evil\nVICTIM"
+    hostile = dest / "friday-evil\nVICTIM"
     hostile.mkdir()
     now = time.time()
     os.utime(hostile, (now - 7200, now - 7200))  # oldest -> prune candidate
     for i in range(24):
-        old = dest / f"jarvis-20240101-{i:04d}"
+        old = dest / f"friday-20240101-{i:04d}"
         old.mkdir()
         os.utime(old, (now - 3600 + i, now - 3600 + i))
     result = run_snapshot(make_source(tmp_path), dest, cwd=workdir)

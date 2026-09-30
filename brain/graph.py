@@ -1,4 +1,4 @@
-"""jarvis-life-os · brain/graph.py
+"""friday · brain/graph.py
 
 The brain: router -> chat | vault | ops_select(->ops_execute) |
 vision_select(->vision_execute) | recall -> memory_writer -> END.
@@ -24,18 +24,18 @@ from brain.nodes.ops import ops_execute_node, ops_select_node
 from brain.nodes.router import route_node
 from brain.nodes.vault import vault_node
 from brain.nodes.vision import recall_node, vision_execute_node, vision_select_node
-from brain.state import JarvisState, assistant_reply
+from brain.state import FridayState, assistant_reply
 from config.settings import get_settings
 
 UNARMED_REPLY = "That system isn't armed yet, sir."
 ARMED = frozenset({"chat", "vault", "ops", "vision", "recall"})  # all live since Phase 5
 
 
-async def _unarmed_node(state: JarvisState) -> dict:
+async def _unarmed_node(state: FridayState) -> dict:
     return assistant_reply(UNARMED_REPLY)
 
 
-def _pick(state: JarvisState) -> str:
+def _pick(state: FridayState) -> str:
     return state.route if state.route in ARMED else "unarmed"
 
 
@@ -64,7 +64,7 @@ def build_graph(
     browse=None,
 ):
     """Compile the brain. Dep kwargs default to the real adapters; pass fakes in tests."""
-    graph = StateGraph(JarvisState)
+    graph = StateGraph(FridayState)
     graph.add_node("router", _bind(route_node, think=think))
     graph.add_node("chat", _bind(chat_node, think=think, stream=stream))
     graph.add_node(

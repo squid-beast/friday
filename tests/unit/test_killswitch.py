@@ -1,4 +1,4 @@
-"""jarvis-life-os · tests/unit/test_killswitch.py
+"""friday · tests/unit/test_killswitch.py
 
 The testable surface: hotkey parsing and icon truth-table. The rumps UI itself
 is exercised live (it needs the macOS run loop).

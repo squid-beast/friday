@@ -1,4 +1,4 @@
-/* jarvis-ui · lib/voice.js — one voice session for the whole app: connect from
+/* friday-ui · lib/voice.js — one voice session for the whole app: connect from
    the cockpit composer or the /voice orbit, same room, same rules. STAND DOWN
    always fires the brain's REAL kill path (audited) before hanging up.
    livekit-client loads lazily: it stays out of the boot bundle and away from

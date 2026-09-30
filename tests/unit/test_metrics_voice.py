@@ -1,4 +1,4 @@
-"""jarvis-life-os · tests/unit/test_metrics_voice.py
+"""friday · tests/unit/test_metrics_voice.py
 
 Spoken metrics digest: deterministic, grounded in the store, platform-filtered
 by what sir actually asked. No LLM in this layer by design.

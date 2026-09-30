@@ -1,4 +1,4 @@
-"""jarvis-life-os · integrations/jobs_actions.py
+"""friday · integrations/jobs_actions.py
 
 Jobs command center, WRITE side. Sir's clicks become one small JSON file per
 batch (_engine/state/decisions_<batch>.json): approve / skip per role, plus his

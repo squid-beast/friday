@@ -1,4 +1,4 @@
-"""jarvis-life-os · integrations/n8n_pull.py
+"""friday · integrations/n8n_pull.py
 
 The generic platform collector: n8n holds every platform credential and does
 the API talking; the Mac just PULLS metrics from authed n8n webhooks listed in
@@ -42,7 +42,7 @@ async def collect(*, record=store.record, config: Path = _CONFIG) -> int:
             )
             try:
                 response = await client.post(
-                    url, json={}, headers={"X-Jarvis-Secret": settings.n8n_webhook_secret}
+                    url, json={}, headers={"X-Friday-Secret": settings.n8n_webhook_secret}
                 )
                 response.raise_for_status()
                 rows = response.json()

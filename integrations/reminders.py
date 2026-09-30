@@ -1,4 +1,4 @@
-"""jarvis-life-os · integrations/reminders.py
+"""friday · integrations/reminders.py
 
 The "remind me to ..." store — the spoken/typed reminder source for the HUD.
 A tiny append-only JSON list beside the other data; no server, no creds. The

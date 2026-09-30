@@ -1,4 +1,4 @@
-"""jarvis-life-os · tests/scenario/test_registry_risks.py
+"""friday · tests/scenario/test_registry_risks.py
 
 L4: the LIVE config/tools.yaml registry behaves per its declared risk — the
 real loader, the real graph, only the backends faked. If someone edits a risk

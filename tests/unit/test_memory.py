@@ -1,4 +1,4 @@
-"""jarvis-life-os · tests/unit/test_memory.py
+"""friday · tests/unit/test_memory.py
 
 adapters/memory.py with chromadb mocked: stable ids, empty-store recall,
 empty-fact refusal, vendor errors propagate (nodes translate to apologies).

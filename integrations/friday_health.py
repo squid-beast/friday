@@ -1,6 +1,6 @@
-"""jarvis-life-os · integrations/jarvis_health.py
+"""friday · integrations/friday_health.py
 
-Jarvis's own vitals from the audit log — the one collector needing zero
+Friday's own vitals from the audit log — the one collector needing zero
 credentials: wakes, workflow runs/failures, camera looks (last 24h).
 """
 
@@ -26,5 +26,5 @@ def collect(*, read=events_since, record=store.record) -> int:
         "camera_looks_24h": looks,
     }
     for metric, value in points.items():
-        record("jarvis", metric, value)
+        record("friday", metric, value)
     return len(points)
