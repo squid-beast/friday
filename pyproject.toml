@@ -21,6 +21,7 @@ dependencies = [
     "pyobjc-framework-eventkit>=12.1",
     "livekit-plugins-openai==1.5.16",
     "livekit-plugins-fishaudio==1.6.9",
+    "kaldi-native-fbank==1.22.3",
 ]
 
 [dependency-groups]

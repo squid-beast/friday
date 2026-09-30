@@ -30,3 +30,6 @@ reference/
 node_modules/
 gesture/handpose
 .claude/settings.local.json
+
+# downloaded speaker-embedding model + enrolled voiceprint (biometric: never committed)
+voice/models/

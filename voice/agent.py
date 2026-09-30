@@ -20,16 +20,10 @@ from typing import Any
 from langgraph.types import Command
 from livekit import agents
 
-from adapters.apps import launch_apps
-from adapters.llm import get_llm
-from adapters.stt import get_stt, get_vad
-from adapters.tts import get_tts
-from brain import mood_sense, pending_question
-from brain.brief import morning_brief
-from brain.checkin import checkin_line
-from brain.graph import get_brain
+from brain import mood_sense
 from client.local_intents import Intent, cut, match
 from config.settings import get_settings
+from voice.owner_lock import REFUSALS, OwnerLock
 from voice.styling import Styler
 
 _PERSONA_PATH = Path(__file__).resolve().parent.parent / "config" / "persona.md"
@@ -63,6 +57,12 @@ def build_instructions() -> str:
     return _PERSONA_PATH.read_text(encoding="utf-8")
 
 
+def _log_refusal(kind: str, detail: str) -> None:
+    from audit.log import log_event
+
+    log_event(kind, detail)
+
+
 def _last_user_text(chat_ctx: Any) -> str:
     for item in reversed(chat_ctx.items):
         if getattr(item, "role", "") == "user" and item.text_content:
@@ -74,15 +74,29 @@ class FridayAgent(agents.Agent):
     """Voice pipeline agent whose 'LLM' is the whole brain graph."""
 
     def __init__(self, brain: Any, thread_id: str, *, styler: Styler | None = None,
-                 sense=mood_sense.turn_update) -> None:
+                 sense=mood_sense.turn_update, lock: OwnerLock | None = None,
+                 audit=None) -> None:
         super().__init__(instructions=build_instructions())
         self._brain = brain
         self.styler = styler or Styler()  # mood -> voice, safety-gated (voice/emotion.py)
         self._sense = sense  # folds this session's audit events into the mood each turn
+        self.lock = lock or OwnerLock.from_settings()  # per-turn owner voice (Phase 5)
+        self._audit = audit or _log_refusal
         self._config = {"configurable": {"thread_id": thread_id}}
         self.muted = False
         self.last_activity = time.monotonic()
         self.pending_confirm = False  # a confirm-gate question is parked in the graph
+
+    async def stt_node(self, audio: Any, model_settings: Any):  # tee: the lock hears each turn
+        async def tee():
+            async for frame in audio:
+                if self.lock.armed:
+                    self.lock.feed(bytes(frame.data), sample_rate=frame.sample_rate,
+                                   channels=frame.num_channels)
+                yield frame
+
+        async for event in agents.Agent.default.stt_node(self, tee(), model_settings):
+            yield event
 
     async def llm_node(  # replaces the default LLM step of the pipeline
         self, chat_ctx: Any, tools: Any, model_settings: Any
@@ -103,12 +117,18 @@ class FridayAgent(agents.Agent):
         if intent is Intent.MUTE:
             self.muted = True
             return
+        if self.muted and intent is not Intent.RESUME:
+            return  # listening silently — no speech, no tokens (and no gate resume)
+        # everything below is CAPABILITY-granting: sir's voice only (when the lock is armed)
+        verdict = await asyncio.to_thread(self.lock.verdict, self.lock.take())
+        if verdict not in ("owner", "unlocked"):
+            self._audit("voice_refused", verdict)
+            yield say(REFUSALS[verdict], "refusal")
+            return
         if intent is Intent.RESUME:
             self.muted = False
             yield say(cut(intent), "cut")  # clears capture flags; "At your service, sir."
             return
-        if self.muted:
-            return  # listening silently — no speech, no tokens (and no gate resume)
         if self.pending_confirm:
             self.pending_confirm = False
             payload: Any = Command(resume=utterance)  # the answer to "Shall I proceed, sir?"
@@ -140,31 +160,7 @@ class FridayAgent(agents.Agent):
             yield say(final_reply, "reply")  # canned refusals/apologies are gated by text
 
 
-async def entrypoint(ctx: agents.JobContext) -> None:
-    await ctx.connect()
-    brain = await get_brain()
-    session = agents.AgentSession(
-        vad=get_vad(),
-        stt=get_stt(),
-        llm=get_llm(),  # unused by llm_node; keeps pipeline internals happy
-        tts=get_tts(),
-    )
-    styler = Styler(tts=session.tts)
-    agent = FridayAgent(brain, thread_id=ctx.room.name or "local", styler=styler)
-    await session.start(agent=agent, room=ctx.room)
-    agent.watchdog = asyncio.create_task(silence_watchdog(agent))  # ref kept against GC
-    with contextlib.suppress(Exception):  # real signals -> mood before the first word
-        await mood_sense.refresh_at_wake()
-    brief = await morning_brief()  # non-None only on the first wake of the day
-    greeting = brief or "At your service, sir."
-    await session.say(styler.line(greeting, "greeting"))  # greet FIRST — fast to first word
-    await asyncio.to_thread(launch_apps, on_wake=True)  # only if WAKE_APPS_ENABLED
-    followup = pending_question.take_for_wake()  # a proactive nudge sent while away?
-    checkin = f"Earlier I wondered — {followup}" if followup else await checkin_line()
-    if checkin:
-        pending_question.mark(checkin)  # so his answer is always remembered
-        await session.say(styler.line(checkin, "checkin"))
-
-
 if __name__ == "__main__":
+    from voice.session import entrypoint  # session wiring lives in voice/session.py
+
     agents.cli.run_app(agents.WorkerOptions(entrypoint_fnc=entrypoint))

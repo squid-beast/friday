@@ -114,6 +114,14 @@ def _port_open(port: int) -> bool:
         return False
 
 
+def _turn_lock_ready(s) -> bool:
+    """Per-turn owner voice is ARMED only with the switch on AND model + voiceprint present."""
+    from adapters.voiceprint import _abs
+
+    return s.voice_lock_turns and all(
+        _abs(p).is_file() for p in (s.voiceprint_model_path, s.voiceprint_path))
+
+
 def _phone_voice_installed() -> bool:
     """`make phone-voice` installed the worker agent (on-demand group)."""
     from pathlib import Path
@@ -145,7 +153,7 @@ def status(_body: dict) -> dict:
             "stand_down_phrase": s.stand_down_phrase_text,
             "voice_lock": "strict" if s.wake_require_verifier else "open",
             "voice_lock_ready": voice_lock_ready,
-            "voice_lock_scope": "wake-only",
+            "voice_lock_scope": "every turn" if _turn_lock_ready(s) else "wake-only",
         },
         "systems": {
             "brain": bool(s.anthropic_api_key),

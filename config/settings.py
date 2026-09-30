@@ -96,8 +96,17 @@ class Settings(BaseSettings):
     wake_threshold: float = 0.6
     wake_model_path: str = ""  # blank = bundled "hey jarvis" until a custom Friday wake exists
     wake_verifier_path: str = ""  # strict owner-voice lock (.joblib), optional until armed
-    wake_verifier_threshold: float = 0.18  # owner-voice acceptance threshold for wake frames
+    # wake-score at which openWakeWord CONSULTS the verifier (not the acceptance bar — the
+    # verifier's probability must still clear wake_threshold). Text-dependent: it learns
+    # "sir saying the phrase" vs "sir saying anything else", never other speakers.
+    wake_verifier_threshold: float = 0.18
     wake_require_verifier: bool = False  # strict mode: fail closed until the verifier exists
+    # Per-turn owner-voice lock (Phase 5): every spoken turn scored vs sir's voiceprint.
+    # Armed only when true; with the model or voiceprint missing it FAILS CLOSED.
+    voice_lock_turns: bool = False
+    voiceprint_model_path: str = "voice/models/wespeaker_en_voxceleb_CAM++.onnx"
+    voiceprint_path: str = "voice/models/owner_voiceprint.npy"  # scripts/enroll_voice.py
+    voiceprint_threshold: float = 0.5  # cosine; tune after enrollment (README TODO)
     kill_model_path: str = ""  # blank = spoken OFFLINE kill unarmed (hotkey/menu-bar still cut)
     # blank = global kill-hotkey OFF. pynput's system-wide keyboard hook costs
     # ~⅛ of a CPU core while you type all day; menu-bar 😴 + spoken "stand down"

@@ -1,8 +1,10 @@
 """friday · scripts/record_voice_verifier.py
 
-Record negative clips for Friday's owner-voice verifier. These clips must NOT
-contain the wake phrase; they should be normal speech from Lohith so the
-verifier learns what his voice sounds like outside the trigger phrase too.
+Record negative clips for Friday's WAKE verifier. These clips must NOT contain
+the wake phrase; they are Lohith's normal speech, so the (text-dependent) wake
+verifier learns "the phrase" vs "anything else he says". The same clips also
+feed the per-turn voiceprint (scripts/enroll_voice.py), which is what actually
+tells his voice apart from other people's.
 """
 
 import sys

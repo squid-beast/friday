@@ -83,3 +83,15 @@ def test_phone_voice_needs_the_worker_and_livekit(monkeypatch) -> None:
     assert api.status({})["systems"]["phone voice"] is True
     monkeypatch.setattr(api, "_phone_voice_installed", lambda: False)  # stray container only
     assert api.status({})["systems"]["phone voice"] is False
+
+
+def test_voice_lock_scope_says_every_turn_only_when_truly_armed(monkeypatch, tmp_path) -> None:
+    model, voice = tmp_path / "m.onnx", tmp_path / "v.npy"
+    monkeypatch.setenv("VOICEPRINT_MODEL_PATH", str(model))
+    monkeypatch.setenv("VOICEPRINT_PATH", str(voice))
+    monkeypatch.setenv("VOICE_LOCK_TURNS", "true")
+    get_settings.cache_clear()
+    model.write_bytes(b"onnx")
+    assert api.status({})["identity"]["voice_lock_scope"] == "wake-only"  # no voiceprint yet
+    voice.write_bytes(b"npy")
+    assert api.status({})["identity"]["voice_lock_scope"] == "every turn"
