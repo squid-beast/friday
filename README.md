@@ -15,7 +15,8 @@ Repo: `/Users/lohithkumar/friday` · Public URL:
 > **2026-09-28 review:** `docs/SYSTEM-REVIEW.md` lists what runs, what is broken, and what to keep, pause or remove.
 
 ## 1 · It's already running
-Six launchd agents (`com.friday.*`) keep Friday alive across reboots. Right now you can:
+Four launchd agents (`com.friday.*`: dashboard, killswitch, metrics, logrotate) keep
+Friday alive across reboots. Right now you can:
 - **Open the app** → the URL above (first visit on a device: add
   `?key=<APP_ACCESS_KEY from .env>` once → year-long cookie). Local:
   `http://127.0.0.1:8787`.
@@ -27,10 +28,8 @@ Six launchd agents (`com.friday.*`) keep Friday alive across reboots. Right now 
 If something looks off, the first move is always `make doctor`.
 
 ## 2 · What it does on wake
-- **Opens your apps + dashboard** — *every* wake opens Spotify + Chrome with
-  Instagram, GitHub, Gmail, and the Friday dashboard. Edit the list with `WAKE_URLS`
-  in `.env`; say **"open my apps"** to trigger it anytime. (No VS Code needed —
-  launchd runs it all on login.)
+- **No app storm** — waking does NOT open apps (`WAKE_APPS_ENABLED=false`). Say
+  **"open my apps"** when you want Spotify + your Chrome tabs (`WAKE_URLS`).
 - **Warm check-in** — Friday greets you, then asks one caring question (health,
   what you're learning, where you are, what you did) and remembers the answer.
   Replies **stream** now — it starts speaking on the first word, not the last.
@@ -47,6 +46,30 @@ Important truth:
 - Once Friday is awake, the conversation path still accepts speech normally.
 - Fully verifying every spoken turn is a separate future feature.
 
+## 3b · What you can say (every command is linked, 2026-09-29)
+| Say | Friday does | Tool |
+|---|---|---|
+| "what's the weather?" | Live Open-Meteo conditions for `WEATHER_CITY` | weather |
+| "remind me to …" | Saves a reminder (HUD Notes card) | reminder |
+| "what's on my calendar today?" | Reads Calendar.app | calendar_today |
+| "book lunch with Sam tomorrow at noon" | Asks "Shall I proceed?", then books | calendar_event (confirm) |
+| "how's my job search going?" | Latest batch, decisions, questions waiting, tracker | jobs_status |
+| "open my notes" / "open the note called X" | Opens Obsidian | open_obsidian |
+| "play some music" / "skip" / "pause" | Controls Spotify | spotify_play |
+| "open my apps" | Spotify + Chrome tabs | open_apps |
+| "how many times did you wake today?" | Friday's own metrics | metrics_report |
+| "what did you do today?" | Reads the audit log | (built in) |
+| any question about your notes / "take a note: …" | Answers from / writes to leos-brain | vault route |
+| "remember that …" | Stores the fact | memory |
+| "stand down" | Ends the session | kill path |
+
+Dark by design (say it and Friday tells you so, the camera never switches on):
+camera ("what am I holding?"), screen recall. Browser tasks use `~/friday-chrome`
+— sign in there once for the sites you want Friday to operate.
+n8n: Friday calls ONLY Friday-owned workflows (none registered today); business
+workflows are never touched. A new one needs a POST webhook + header auth
+`X-Friday-Secret`; `make doctor` fails if a registered path isn't served.
+
 ## 4 · Commands
 | Command | What it does |
 |---|---|
@@ -55,24 +78,27 @@ Important truth:
 | `make voice` | Voice loop on the Mac's mic/speakers, barge-in, no Docker |
 | `make ui` | Rebuild the SvelteKit UI into `ui/build` (after any `ui/src` change) |
 | `make gesture` | Build the native hand-tracking spike (G0); then `uv run python -m gesture.spike` |
-| `make install-launchd` | Install/refresh all launchd agents (idempotent) |
+| `make install-launchd` | Install/refresh the 4 always-on launchd agents (idempotent) |
+| `make phone-voice` / `make phone-voice-off` | Server side of phone voice (LiveKit + voiceworker) on / off. No phone client exists today — kept for a future one. Start Docker Desktop first |
 | `make snapshot` | rsync the repo → `~/friday-snapshots/` — the "undo" |
 | `make lint` / `test-unit` | Lint (ruff) / L1 tests — before finishing any change |
 | `make test-integration` / `test-scenario` | L2 / the demo, end-to-end |
-| `make eval` | Router accuracy vs the real model (≥90% gate) |
+| `make eval` | Router + tool-selection accuracy vs the real model (≥90% gates) |
 
 Restart one agent: `launchctl kickstart -k gui/$(id -u)/com.friday.<name>`
-(dashboard · killswitch · voiceworker · livekit · metrics · logrotate).
-Screen recall (screenpipe) and camera sight (moondream) are dark by design —
-their agents were removed 2026-09-29.
+(dashboard · killswitch · metrics · logrotate; voiceworker · livekit only between
+`make phone-voice` and `make phone-voice-off`). Screen recall (screenpipe) and camera sight (moondream) are
+dark by design — their agents were removed 2026-09-29.
 
 Runtime state lives outside the repo under `FRIDAY_STATE_DIR`.
 Default: `~/Library/Application Support/Friday`.
 
 ## 5 · The dashboard
 **One dashboard** at `/`: no tabs, no buttons, voice-first. It shows the live
-state, recent context, Studio queue, Metrics, Today, weather in °F, system load,
-snaps, notes, automations, and gesture tracking on one screen.
+state, the recent conversation (your last spoken turns, from the brain's own
+store), Now, Metrics, Today, Jobs, weather in °F, system load, snaps, notes, and
+automations (one row per n8n workflow, local time; errors shown, not hidden).
+Studio and gesture panels are parked (code kept, not mounted).
 
 The header tells the truth about:
 - which wake phrase is actually active
@@ -89,20 +115,18 @@ nightly Claude run reads. The cockpit shows a read-only Jobs card linking here.
 API: `GET /api/v1/jobs/overview`; `POST /api/v1/jobs/{batch,decide,answer,open}`.
 
 ## 6 · What still needs you
-`make doctor` (2026-09-29): all clear **except n8n** — the VPS now answers plain
-HTTP on :5678 (its tailnet TLS front is gone), so the configured `https://` base
-URL fails. Your call: restore `tailscale serve` on the VPS, or switch
-`N8N_BASE_URL` to `http://` (still WireGuard-encrypted inside the tailnet).
-Phone voice needs Docker Desktop running (LiveKit); the Mac wake path does not.
+`make doctor` (2026-09-30): **all clear**. n8n is reached over the tailnet at
+`http://…:5678` (WireGuard-encrypted). Phone voice: server side on demand
+(`make phone-voice`), no phone client today; the Mac wake path never needs Docker.
 
 | ✅ Working | ⏳ Needs you |
 |---|---|
 | Brain · PIN · voice keys · weather (°F) | **Phone/browser:** open the app once with `?key=` again (the old `jarvis_key` cookie is no longer accepted) |
-| Calendar · HUD snaps tile (camera dark by design) | **Activate** your 5 n8n workflows — first switch their header check to `X-Friday-Secret` |
-| Apps open on every wake · streaming replies | **Train** the custom `Hey Friday` wake model |
+| Calendar · jobs status · Obsidian · Spotify by voice | **Browser tasks:** sign in once in the `~/friday-chrome` profile |
+| Streaming replies · honest camera ("eyes offline") | **Train** the custom `Hey Friday` wake model |
 | HUD · access gate · log rotation | **Train** the owner-voice verifier for strict wake-only access |
-| Caring check-in · calls scaffold (PIN-gated) | **Calls** provider (`docs/CALLS.md`) · **iPhone** Add to Home Screen (`docs/MOBILE.md`) |
-| Spotify control · gesture G0–G3 (`gesture/README.md`) | **G3 live**: `make gesture` → `python -m gesture.agent` → allow Accessibility → point→cursor, pinch→click, swipe→space, spread→zoom |
+| Caring check-in · recent-conversation card | **iPhone** Add to Home Screen (`docs/MOBILE.md`) |
+| Spotify control | Gesture control is **parked** (panel unmounted; code in `gesture/`, manual `python -m gesture.agent` only) |
 
 ### Working right now (v1, current truth)
 - **Brain LLM:** Anthropic only (Sonnet + Haiku) via `adapters/llm.py`.
@@ -110,7 +134,8 @@ Phone voice needs Docker Desktop running (LiveKit); the Mac wake path does not.
 - **Wake:** "Hey Jarvis" fallback — custom "Hey Friday" model not trained yet.
 - **Voice lock:** wake-only; per-utterance owner verification not armed.
 - **Access:** Tailscale URL + `APP_ACCESS_KEY` cookie (not public internet yet).
-- **Actions:** n8n tools defined in `config/tools.yaml` — need activating in n8n.
+- **Actions:** 9 local tools in `config/tools.yaml` (table in §3b); no n8n tools
+  registered (calls/business demo tools removed 2026-09-29; calls doc archived).
 - **Emotion:** mood engine exists (`docs/EMOTIONS.md`) — colors word choice, not
   yet the voice.
 
@@ -129,7 +154,7 @@ workflow + one `config/tools.yaml` entry when wanted.
 ## 7 · How changes show up
 - **UI change** → rebuild the UI, then refresh the browser.
 - **Backend change** → restart the dashboard agent.
-- **Voice change** → restart the voice worker.
+- **Voice change** → restart the killswitch (it spawns a fresh voice session each wake).
 - **No, VS Code does not need to stay open.** Launchd keeps Friday running after login.
 
 ## 8 · Keep these docs
@@ -137,7 +162,7 @@ workflow + one `config/tools.yaml` entry when wanted.
 - `docs/UPGRADE-PLAN.md`  ← v2 roadmap (models · voice · deploy · voice-lock)
 - `docs/SETUP.md`
 - `docs/MOBILE.md`
-- `docs/CALLS.md`
+- `docs/DEMO-SCRIPT.md` ← v1 definition of done (redefined 2026-09-29)
 
 ## 9 · If something breaks
 1. `make doctor` — names the dark service.

@@ -14,39 +14,29 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from urllib.parse import unquote, urlsplit
 
 from config.settings import get_settings
-from integrations import api, api_devices, api_hud, jobs_api
+from integrations import api, api_conversation, api_devices, api_hud, api_studio, jobs_api
 from integrations.access import AccessGate
 from integrations.static_files import BUILD as _BUILD
 from integrations.static_files import StaticFiles
 
 # dashboard + the Jobs command center; every other non-API GET -> the SPA shell
 PAGES = {"/": "index.html", "/jobs": "jobs.html"}
-# The professional surface is /api/v1/* (docs/API.md). The unversioned paths
-# are deprecated aliases kept so older installed phones never break.
+# The API surface is /api/v1/* only (unversioned aliases removed 2026-09-29).
 GET_API = {
     "/api/v1/system/status": api.status,
     "/api/v1/metrics": api.summary,
     "/api/v1/agenda": api.today_view,
-    "/api/v1/studio/queue": api.content_list,
     "/api/v1/voice/session": api.voice_token,
-    "/api/status": api.status, "/api/summary": api.summary,
-    "/api/today": api.today_view, "/api/content": api.content_list,
-    "/api/voice-token": api.voice_token,
 }
 POST_API = {
     "/api/v1/daemon/wake": api.daemon_wake,
     "/api/v1/daemon/stand-down": api.daemon_stand_down,
-    "/api/v1/studio/queue/refresh": api.content_refresh,
-    "/api/v1/studio/publish": api.content_publish,
-    "/api/v1/studio/skip": api.content_skip,
-    "/api/content/refresh": api.content_refresh,
-    "/api/content/publish": api.content_publish,
-    "/api/content/skip": api.content_skip,
 }
-for _module in (api_hud, api_devices, jobs_api):  # route groups register themselves
+# route groups register themselves (one module per concern)
+for _module in (api_hud, api_devices, api_studio, api_conversation, jobs_api):
     GET_API.update(_module.GET_API)
     POST_API.update(_module.POST_API)
-ASK_PATHS = ("/api/v1/conversation", "/api/ask")
+ASK_PATHS = ("/api/v1/conversation",)
 _bridge = None
 
 

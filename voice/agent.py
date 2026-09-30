@@ -145,7 +145,7 @@ async def entrypoint(ctx: agents.JobContext) -> None:
     agent.watchdog = asyncio.create_task(silence_watchdog(agent))  # ref kept against GC
     brief = await morning_brief()  # non-None only on the first wake of the day
     await session.say(brief or "At your service, sir.")  # greet FIRST — fast to first word
-    await asyncio.to_thread(launch_apps)  # EVERY wake: open sir's apps + tabs + the cockpit
+    await asyncio.to_thread(launch_apps, on_wake=True)  # only if WAKE_APPS_ENABLED
     checkin = await checkin_line()  # then the warm, caring question (its own utterance)
     if checkin:
         await session.say(checkin)

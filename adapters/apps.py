@@ -2,9 +2,10 @@
 
 The wake launch: open sir's apps + tabs (Spotify, then Chrome with his
 configured URLs including the Friday cockpit). macOS `open` only — a subprocess,
-no network. Fired on EVERY wake (voice/agent.py) and on demand by the
-`open_apps` tool ("open my apps"). Each `open` is checked and logged, so a
-missing app or wrong name surfaces instead of silently no-opping.
+no network. On wake (voice/agent.py) ONLY while WAKE_APPS_ENABLED is on; the
+`open_apps` tool ("open my apps") always works — the wake switch never disarms
+the command. Each `open` is checked and logged, so a missing app or wrong name
+surfaces instead of silently no-opping.
 """
 
 import logging
@@ -34,10 +35,11 @@ def _open(run, args: list[str], label: str, launched: list[str]) -> None:
         log.warning("open %s failed (rc=%s): %s", label, result.returncode, err)
 
 
-def launch_apps(*, settings=None, run=subprocess.run) -> list[str]:
-    """Open the configured apps/tabs; return what actually launched. Never raises."""
+def launch_apps(*, settings=None, run=subprocess.run, on_wake: bool = False) -> list[str]:
+    """Open the configured apps/tabs; return what actually launched. Never raises.
+    on_wake=True honours the WAKE_APPS_ENABLED switch; the spoken tool ignores it."""
     settings = settings or get_settings()
-    if not settings.wake_apps_enabled:
+    if on_wake and not settings.wake_apps_enabled:
         return []
     launched: list[str] = []
     if settings.wake_launch_spotify:
@@ -52,5 +54,5 @@ async def launch(arg: str, utterance: str) -> str:
     """The open_apps tool: launch on command, reply in persona-ready plain text."""
     launched = launch_apps()
     if not launched:
-        return "App launch is switched off, sir — nothing to open."
+        return "Nothing opened, sir — no apps or tabs are configured, or they failed to launch."
     return "Opening " + " and ".join(launched) + ", sir."

@@ -4,8 +4,14 @@
 
   let data = $state({});
 
-  onMount(async () => {
-    try { data = await metrics(); } catch { data = {}; }
+  async function pull() {
+    try { data = await metrics(); } catch { /* keep last */ }
+  }
+
+  onMount(() => {
+    pull();
+    const timer = setInterval(pull, 60000);  // hourly points appear without a reload
+    return () => clearInterval(timer);
   });
 
   const rows = $derived(

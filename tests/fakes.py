@@ -5,6 +5,10 @@ replies in order and fails loudly if asked for more than was scripted.
 FakeN8n arrives with the ops node in Phase 4.
 """
 
+from typing import Self
+
+import httpx
+
 from adapters.vault import VaultHit
 
 
@@ -93,3 +97,27 @@ class FakeBrain:
     async def astream(self, state, config, *, stream_mode=None):
         self.calls.append((state, config))
         yield "updates", {"chat": {"reply": "Indeed, sir.", "route": "chat", "messages": []}}
+
+
+def fake_http(monkeypatch, module, status: int, json: dict | None = None) -> list:
+    """Replace module.httpx.AsyncClient with a one-response fake; returns the
+    recorded (url, headers) calls. For the doctor's GET-only checks."""
+    calls: list[tuple[str, dict]] = []
+    response = httpx.Response(status, json=json, request=httpx.Request("GET", "https://x"))
+
+    class Client:
+        def __init__(self, timeout: float | None = None) -> None:
+            pass
+
+        async def __aenter__(self) -> Self:
+            return self
+
+        async def __aexit__(self, *exc: object) -> None:
+            return None
+
+        async def get(self, url: str, headers: dict | None = None) -> httpx.Response:
+            calls.append((url, headers))
+            return response
+
+    monkeypatch.setattr(module.httpx, "AsyncClient", Client)
+    return calls

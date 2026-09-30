@@ -1,25 +1,7 @@
-/* friday-ui · lib/stores.js — shared state. The transcript lives HERE so it
-   survives client-side navigation between the cockpit and the focused views. */
+/* friday-ui · lib/stores.js — shared state: the status payload every screen
+   reads (header, NOW panel), refreshed on one 60s interval from +layout. */
 import { writable } from "svelte/store";
-import { converse, systemStatus, studioQueue } from "$lib/api.js";
-
-export const messages = writable([]);
-export const busy = writable(false);
-
-export async function say(text) {
-  messages.update((m) => [...m, { who: "me", text }]);
-  busy.set(true);
-  try {
-    const data = await converse(text);
-    messages.update((m) => [...m,
-      { who: "friday", text: data.reply, pending: !!data.pending }]);
-  } catch {
-    messages.update((m) => [...m,
-      { who: "friday", text: "I can't reach the house, sir." }]);
-  } finally {
-    busy.set(false);
-  }
-}
+import { systemStatus } from "$lib/api.js";
 
 export const status = writable({
   daemon: "off",
@@ -38,9 +20,6 @@ export const status = writable({
   next_event: null,
   activity: [],
 });
-export const queue = writable({ items: [], armed: false });
-
 export async function refreshPanels() {
   try { status.set(await systemStatus()); } catch { /* panel keeps last state */ }
-  try { queue.set(await studioQueue()); } catch { /* panel keeps last state */ }
 }

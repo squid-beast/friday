@@ -1,8 +1,9 @@
 """friday · brain/graph.py
 
 The brain: router -> chat | vault | ops_select(->ops_execute) |
-vision_select(->vision_execute) | recall -> memory_writer -> END.
-All five routes live; `unarmed` remains only as the impossible-route guard.
+vision_select(->vision_execute) -> memory_writer -> END. The recall node
+(screen memory) stays wired but DISARMED since screenpipe's removal
+(2026-09-29): a "recall" route lands on `unarmed`.
 New tools are registered in config/tools.yaml, NEVER by editing this wiring
 (CONVENTIONS.md).
 
@@ -28,7 +29,7 @@ from brain.state import FridayState, assistant_reply
 from config.settings import get_settings
 
 UNARMED_REPLY = "That system isn't armed yet, sir."
-ARMED = frozenset({"chat", "vault", "ops", "vision", "recall"})  # all live since Phase 5
+ARMED = frozenset({"chat", "vault", "ops", "vision"})  # recall disarmed with screenpipe
 
 
 async def _unarmed_node(state: FridayState) -> dict:

@@ -11,26 +11,26 @@ URL; the Mac stays the brain.
    → the key becomes a year-long cookie, so afterwards the plain URL just works.
 3. **Share → Add to Home Screen.** You now have a Friday app icon.
 
-## What you can do from the phone
-- **Chat** — type to Friday in the cockpit; same brain, memory, and tools as voice.
-- **Wake / Stand down** — the masthead pill (● Active / ○ Dormant) starts or ends
-  the Mac's listening session from your pocket.
-- **HUD** — glance screen: time, weather (°F), system vitals, notes & reminders,
-  today's automations (tap a run to see its data).
-- **Studio** — review trending content cards, two-tap publish.
-- **Notes** — recent notes on the dashboard; tapping one opens it in Obsidian
-  **on the Mac** (the server runs there). Browsing and graphing live in Obsidian
-  itself, not in Friday. Asking Friday *about* your notes works from anywhere.
+## What you can do from the phone (current truth, 2026-09-29)
+- **Glance** — the dashboard is passive and voice-first (no buttons): Friday's
+  state, the recent conversation (your last spoken turns), Now, Metrics, Today,
+  Jobs, HUD (time, weather °F, system vitals, notes & reminders, automations).
+- **Jobs** — `/jobs` is the one screen with buttons: approve / skip / answer /
+  open files for the latest job batch.
+- **Text API** — `POST /api/v1/conversation` with `Authorization: Bearer <key>`
+  reaches the same brain, tools and gates (e.g. from a Shortcut). No chat box.
 
 ## Talking to it
-Spoken conversation uses the **Mac's** mic — the
-phone is your remote and screen. Wake it with the pill or the wake phrase, talk,
-and it answers on the Mac. (Phone-microphone voice is kept in the code but off in
-the UI; ask to re-enable it if you want it.)
+Spoken conversation uses the **Mac's** mic — wake it with the wake phrase and it
+answers on the Mac. Phone-microphone voice has **no client today**: the browser
+LiveKit client (ui/src/lib/voice.js) was removed on 2026-09-29. `make phone-voice`
+(Docker Desktop running) starts only the server side — LiveKit + the voiceworker —
+for a future client; `make phone-voice-off` removes both and stops the container.
 
 ## Killing it from the phone
-Tap the pill to **Stand down** — audited, instant. The Mac's menu-bar 😴 and the
-spoken "stand down" are the other two kill paths.
+There is no stand-down button (passive dashboard). From the phone, send
+`POST /api/v1/daemon/stand-down` with the Bearer key, or say "stand down" at the
+Mac; the Mac's menu-bar 😴 always works offline.
 
 ## If it won't load
 - Tailscale off on either device → turn it on.

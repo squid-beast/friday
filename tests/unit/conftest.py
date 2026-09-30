@@ -9,6 +9,7 @@ from pathlib import Path
 
 import pytest
 
+import integrations.api_hud as api_hud_mod
 import integrations.server as server_mod
 import integrations.store as store_mod
 from integrations.server import make_server
@@ -36,3 +37,11 @@ def served(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
     server.shutdown()
     thread.join(timeout=2)
     get_settings.cache_clear()
+
+
+@pytest.fixture(autouse=True)
+def _fresh_hud_memo():
+    """api_hud memoizes weather/n8n for 60s; never let one test's payload leak."""
+    api_hud_mod._memo.clear()
+    yield
+    api_hud_mod._memo.clear()

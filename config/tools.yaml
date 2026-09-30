@@ -1,42 +1,16 @@
 # Tool registry — the ONLY place capabilities are declared (CONVENTIONS.md).
 # Risk: safe (runs immediately) | confirm ("Shall I proceed, sir?")
 #       | pin (spoken 4-digit PIN) | blocked (refused).
-#
-# Adding a capability = ONE n8n workflow (or adapter) + one entry below. Webhook
-# paths come from each workflow's Webhook node; each receives
-# {"utterance": "<what you said>"}. Unbuilt ideas live in README's backlog.
 # Risk policy: reading/finding/drafting = safe · anything that SENDS or posts
 # on your behalf = confirm · phone calls in your voice/name = pin.
+#
+# n8n tools use adapter adapters.n8n:run + webhook_path. RULE: only Friday-owned
+# n8n workflows — never a business/client workflow — and the webhook must be
+# POST + headerAuth (X-Friday-Secret). None are registered right now (2026-09-29:
+# the business demo tools were unlinked); `make doctor` fails if one is added
+# whose path has no active POST workflow. Unbuilt ideas: README backlog.
 tools:
-  # n8n capabilities (wired 2026-08-15 from the live workflow list; base URL =
-  # tailnet n8n). Each needs its workflow ACTIVATED in the n8n editor to answer.
-  - name: job_search
-    description: "runs the job engine: searches job boards and scores/tailors matching roles for sir"
-    adapter: adapters.n8n:run
-    webhook_path: /webhook/job-run
-    risk: confirm
-  - name: review_draft
-    description: "drafts a reply to a customer review for sir's approval; drafts only, sends nothing"
-    adapter: adapters.n8n:run
-    webhook_path: /webhook/review-in
-    risk: safe
-  - name: lead_intake
-    description: "kicks off speed-to-lead: instant response sequence for a new lead"
-    adapter: adapters.n8n:run
-    webhook_path: /webhook/lead-intake
-    risk: confirm
-  - name: vendor_report
-    description: "runs the vendor data report and returns the numbers"
-    adapter: adapters.n8n:run
-    webhook_path: /webhook/run-vendor-report
-    risk: safe
-  - name: maintenance_request
-    description: "files a property maintenance request for triage and dispatch"
-    adapter: adapters.n8n:run
-    webhook_path: /webhook/maintenance-request
-    risk: confirm
-
-  # Phase D2 — local capabilities, live today (no credentials needed):
+  # Local capabilities (no credentials leave the Mac):
   - name: weather
     description: "tells the current weather, temperature, rain chances and today's forecast outside"
     adapter: adapters.weather:report
@@ -54,7 +28,7 @@ tools:
     adapter: adapters.calendar:create_from_speech
     risk: confirm
   - name: metrics_report
-    description: "reads business metrics from the dashboard: instagram reels, bookings, revenue and MRR, leads, workflow health"
+    description: "reads Friday's own dashboard metrics aloud: wakes, tool runs and failures, camera looks, today's events"
     adapter: integrations.metrics_voice:report
     risk: safe
   - name: open_apps
@@ -65,7 +39,11 @@ tools:
     description: "controls Spotify music playback: play or resume songs, pause, skip/next, previous track, or what's playing now"
     adapter: adapters.spotify:control
     risk: safe
-  - name: make_call
-    description: "places a real phone call and speaks to someone on sir's behalf; dials a number and talks for him"
-    adapter: adapters.telephony:call
-    risk: pin
+  - name: jobs_status
+    description: "reports sir's job search: the latest job batch, roles approved/skipped/undecided, questions waiting on him, and the application tracker"
+    adapter: integrations.jobs_voice:status
+    risk: safe
+  - name: open_obsidian
+    description: "opens sir's notes vault in the Obsidian app, or one note by name ('open the note called ...'); NOT for answering questions from notes"
+    adapter: adapters.vault:open_tool
+    risk: safe

@@ -1,12 +1,12 @@
 """scripts/healthcheck.py — quick never fails a session; full fails loud."""
 
-from typing import Self
 
 import httpx
 import pytest
 
 import scripts.healthcheck as hc
 from config.settings import get_settings
+from tests.fakes import fake_http
 
 
 @pytest.fixture(autouse=True)
@@ -33,15 +33,27 @@ def test_quick_all_green(monkeypatch: pytest.MonkeyPatch, capsys) -> None:
 
 
 def test_quick_missing_key_warns_but_exits_zero(
-    monkeypatch: pytest.MonkeyPatch, capsys
+    monkeypatch: pytest.MonkeyPatch, capsys, tmp_path
 ) -> None:
     monkeypatch.setenv("ANTHROPIC_API_KEY", "")
     get_settings.cache_clear()
     monkeypatch.setattr(hc, "port_open", lambda *a, **k: False)
+    monkeypatch.setattr(hc, "_PHONE_VOICE_AGENT", tmp_path / "absent.plist")
     assert hc.main(["--quick"]) == 0  # SessionStart hook must never block
     out = capsys.readouterr().out
     assert "WARN: ANTHROPIC_API_KEY" in out
-    assert "livekit" in out
+    assert "LiveKit is down" not in out  # phone voice not installed = nothing to warn about
+
+
+def test_quick_warns_livekit_only_when_phone_voice_is_installed(
+    monkeypatch: pytest.MonkeyPatch, capsys, tmp_path
+) -> None:
+    agent = tmp_path / "com.friday.livekit.plist"
+    agent.write_text("<plist/>")
+    monkeypatch.setattr(hc, "_PHONE_VOICE_AGENT", agent)
+    monkeypatch.setattr(hc, "port_open", lambda *a, **k: False)
+    assert hc.main(["--quick"]) == 0
+    assert "LiveKit is down" in capsys.readouterr().out
 
 
 def test_full_all_green(monkeypatch: pytest.MonkeyPatch, capsys) -> None:
@@ -71,26 +83,10 @@ def test_quick_invalid_env_value_still_exits_zero(
     assert "WARN" in capsys.readouterr().out
 
 
-def _fake_http(monkeypatch: pytest.MonkeyPatch, status: int) -> list[tuple[str, dict]]:
-    calls: list[tuple[str, dict]] = []
-    response = httpx.Response(status, request=httpx.Request("GET", "https://x"))
-
-    class Client:
-        def __init__(self, timeout: float | None = None) -> None:
-            pass
-
-        async def __aenter__(self) -> Self:
-            return self
-
-        async def __aexit__(self, *exc: object) -> None:
-            return None
-
-        async def get(self, url: str, headers: dict | None = None) -> httpx.Response:
-            calls.append((url, headers))
-            return response
-
-    monkeypatch.setattr(hc.httpx, "AsyncClient", Client)
-    return calls
+def _fake_http(
+    monkeypatch: pytest.MonkeyPatch, status: int, json: dict | None = None
+) -> list[tuple[str, dict]]:
+    return fake_http(monkeypatch, hc, status, json)
 
 
 async def test_check_deepgram_missing_key(monkeypatch: pytest.MonkeyPatch) -> None:
@@ -126,14 +122,6 @@ async def test_check_cartesia_auth_header_and_401(monkeypatch: pytest.MonkeyPatc
 
 
 # --- Phase 6 doctor extensions ---
-
-
-async def test_check_n8n_unconfigured_is_not_a_failure(monkeypatch: pytest.MonkeyPatch) -> None:
-    monkeypatch.setenv("N8N_BASE_URL", "")
-    get_settings.cache_clear()
-    calls = _fake_http(monkeypatch, 500)
-    await hc.check_n8n()  # must not raise, must not call anything
-    assert calls == []
 
 
 def test_removed_eye_services_are_reported_dark_not_failed(

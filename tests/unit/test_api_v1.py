@@ -27,10 +27,13 @@ def test_every_v1_read_endpoint_answers_with_its_shape(served: str) -> None:
         assert status == 200 and (key is None or key in data), path
 
 
-def test_conversation_round_trip_on_v1_and_legacy_alias(served: str) -> None:
-    for path in ("/api/v1/conversation", "/api/ask"):
-        status, data = _post(served + path, {"text": "status report"})
-        assert status == 200 and data["reply"].startswith("Indeed"), path
+def test_conversation_round_trip_and_legacy_aliases_are_gone(served: str) -> None:
+    status, data = _post(served + "/api/v1/conversation", {"text": "status report"})
+    assert status == 200 and data["reply"].startswith("Indeed")
+    for path in ("/api/ask", "/api/status", "/api/today", "/api/content", "/api/voice-token"):
+        with pytest.raises(urllib.error.HTTPError) as err:
+            _get(served + path)
+        assert _code(err) == 404, path  # unversioned aliases removed 2026-09-29
 
 
 def test_spa_shell_served_on_all_screens(served: str) -> None:

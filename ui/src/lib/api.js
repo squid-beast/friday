@@ -10,12 +10,6 @@ async function request(path, options = {}) {
   return response.json();
 }
 
-const post = (path, body) =>
-  request(path, { method: "POST", body: JSON.stringify(body ?? {}) });
-
-/** Speak to the brain. -> {reply, pending} */
-export const converse = (text) => post("/api/v1/conversation", { text });
-
 /** Armed systems, queue depth, next event, recent activity. */
 export const systemStatus = () => request("/api/v1/system/status");
 
@@ -25,15 +19,11 @@ export const metrics = () => request("/api/v1/metrics");
 /** Today's calendar + Friday activity log. */
 export const agenda = () => request("/api/v1/agenda");
 
-/** Content Studio review queue. -> {items, armed} */
-export const studioQueue = () => request("/api/v1/studio/queue");
-export const studioRefresh = () => post("/api/v1/studio/queue/refresh");
-export const studioPublish = (id, caption = "") =>
-  post("/api/v1/studio/publish", { id, caption });
-export const studioSkip = (id) => post("/api/v1/studio/skip", { id });
+/** The last few spoken turns (Mac voice or phone), newest thread. */
+export const recentConversation = () => request("/api/v1/conversation/recent");
 
-/** LiveKit credentials for the voice room. -> {url, token, room} */
-export const voiceSession = () => request("/api/v1/voice/session");
+/** Content Studio review queue (panel parked). -> {items, armed} */
+export const studioQueue = () => request("/api/v1/studio/queue");
 
 export const visionSnaps = () => request("/api/v1/vision/snaps");
 

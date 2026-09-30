@@ -1,12 +1,18 @@
 <script>
+  /* PARKED (not mounted on the dashboard since 2026-09-29). Self-contained so
+     nothing polls the Studio backend while it is parked. */
+  import { onMount } from "svelte";
   import { slide } from "svelte/transition";
-  import { queue } from "$lib/stores.js";
+  import { studioQueue } from "$lib/api.js";
+
+  let q = $state({ items: [], armed: false });
+  onMount(async () => { try { q = await studioQueue(); } catch { /* keep empty */ } });
 </script>
 
 <section class="card panel" aria-label="Studio">
   <div class="head"><span class="idx">01 ◆</span>Studio
-    <span class="meta">{$queue.armed ? `${$queue.items.length} in queue` : "workflows dark"}</span></div>
-  {#each $queue.items as item (item.id)}
+    <span class="meta">{q.armed ? `${q.items.length} in queue` : "workflows dark"}</span></div>
+  {#each q.items as item (item.id)}
     <div class="item" transition:slide={{ duration: 180 }}>
       <div class="t">{item.title || item.id}</div>
       <div class="h">{item.hook || item.source || ""}</div>
@@ -15,7 +21,7 @@
     </div>
   {:else}
     <div class="row"><span class="k">queue</span>
-      <span class="v">{$queue.armed ? "empty — your next draft will land here" : "build the n8n workflows, sir"}</span>
+      <span class="v">{q.armed ? "empty — your next draft will land here" : "build the n8n workflows, sir"}</span>
     </div>
   {/each}
 </section>

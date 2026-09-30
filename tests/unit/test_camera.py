@@ -4,7 +4,8 @@ adapters/camera.py mocked: the cut flag refuses before the lens, missing
 imagesnap gets a brew hint, single-invocation capture, describe wiring, and the
 frame-content guard — a BLACK frame (what a TCC-blocked camera produces) is
 rejected instead of narrated, a real frame is saved as a snap, and imagesnap's
-stderr is surfaced (not swallowed) on failure.
+stderr is surfaced (not swallowed) on failure. SAFETY (2026-09-29): with no
+describer listening, the camera is never switched on at all.
 """
 
 from pathlib import Path
@@ -21,6 +22,7 @@ from config.settings import get_settings
 def _flags(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
     monkeypatch.setenv("CAMERA_OFF_FILE", str(tmp_path / "camera_off"))
     monkeypatch.setenv("VISION_SNAPS_DIR", str(tmp_path / "snaps"))
+    monkeypatch.setattr(camera, "_eyes_up", lambda: True)  # describer "listening"
     get_settings.cache_clear()
     yield
     get_settings.cache_clear()
@@ -50,6 +52,24 @@ async def test_camera_cut_refuses_before_any_capture() -> None:
     ):
         await camera.look("what am I holding?")
     spawn.assert_not_called()  # the lens is never touched while cut
+
+
+async def test_no_describer_means_the_camera_never_switches_on(monkeypatch) -> None:
+    monkeypatch.setattr(camera, "_eyes_up", lambda: False)
+    with (
+        patch.object(camera.asyncio, "create_subprocess_exec") as spawn,
+        pytest.raises(ConnectionError, match="vision model"),
+    ):
+        await camera.look("what am I holding?")
+    spawn.assert_not_called()  # no light, no frame, no snap while the eyes are down
+    assert not Path(get_settings().vision_snaps_dir).exists()
+
+
+def test_eyes_up_probes_the_describer_port(monkeypatch) -> None:
+    monkeypatch.undo()  # the real probe, not the fixture's stub
+    monkeypatch.setenv("MOONDREAM_ENDPOINT", "http://127.0.0.1:1/v1")  # nothing listens on 1
+    get_settings.cache_clear()
+    assert camera._eyes_up() is False
 
 
 async def test_look_captures_one_frame_and_describes() -> None:

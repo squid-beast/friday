@@ -10,13 +10,16 @@ import asyncio
 import socket
 import sys
 from collections.abc import Awaitable, Callable
+from pathlib import Path
 
 import httpx
 
 from config.settings import get_settings
+from config.tools import load_tools
 
 _KEY_FIELDS = ("anthropic_api_key", "deepgram_api_key", "cartesia_api_key")
 _HTTP_TIMEOUT_S = 5.0
+_PHONE_VOICE_AGENT = Path.home() / "Library/LaunchAgents/com.friday.livekit.plist"
 
 
 def port_open(host: str, port: int, timeout: float = 0.5) -> bool:
@@ -34,8 +37,9 @@ def quick() -> list[str]:
         warns.append("WARN: TTS_VOICE_ID not set — Cartesia default voice will be used")
     if settings.wake_require_verifier and not settings.wake_verifier_path:
         warns.append("WARN: strict owner-voice wake is on, but WAKE_VERIFIER_PATH is missing")
-    if not port_open("127.0.0.1", 7880):
-        warns.append("WARN: livekit down (docker compose up -d; console mode works without it)")
+    if _PHONE_VOICE_AGENT.exists() and not port_open("127.0.0.1", 7880):
+        warns.append("WARN: phone voice is on but LiveKit is down — start Docker Desktop "
+                      "(or `make phone-voice-off`)")
     return warns
 
 
@@ -69,13 +73,54 @@ async def check_cartesia() -> None:
 
 
 async def check_n8n() -> None:
+    """Reachable + authorised (REST API with the key), and every registered
+    adapters.n8n tool has an ACTIVE workflow serving its path as POST. Read-only:
+    business workflows are listed, never touched."""
     settings = get_settings()
     if not settings.n8n_base_url:
-        return  # not configured until the Phase 4 table is filled — not a failure
+        return  # n8n not configured — not a failure
+    if not settings.n8n_api_key:
+        raise ValueError("N8N_API_KEY not set — can't verify workflows")
+    base = f"{settings.n8n_base_url.rstrip('/')}/api/v1/workflows?limit=250"
+    workflows, cursor = [], ""
     async with httpx.AsyncClient(timeout=_HTTP_TIMEOUT_S) as client:
-        response = await client.get(settings.n8n_base_url)
-    if response.status_code >= 500:
-        raise ValueError(f"n8n unhealthy: {response.status_code}")
+        while True:
+            response = await client.get(
+                base + (f"&cursor={cursor}" if cursor else ""),
+                headers={"X-N8N-API-KEY": settings.n8n_api_key},
+            )
+            response.raise_for_status()
+            page = response.json()
+            workflows += page.get("data", [])
+            cursor = page.get("nextCursor") or ""
+            if not cursor:
+                break
+    served = _active_post_hooks(workflows)
+    missing = [t.name for t in load_tools() if t.adapter.startswith("adapters.n8n")
+               and _hook_key(t.webhook_path) not in served]
+    if missing:
+        raise ValueError(f"no active POST workflow for tool(s): {', '.join(missing)}")
+
+
+def _hook_key(webhook_path: str) -> str | None:
+    """The webhook-node path adapters.n8n will actually hit, or None when the
+    tool's path isn't a production webhook URL (it would 404)."""
+    path = webhook_path.lstrip("/")
+    return path.removeprefix("webhook/").strip("/") if path.startswith("webhook/") else None
+
+
+def _active_post_hooks(workflows: list[dict]) -> set[str]:
+    hooks = set()
+    for wf in workflows:
+        if not wf.get("active"):
+            continue
+        for node in wf.get("nodes", []):
+            params = node.get("parameters", {})
+            methods = params.get("httpMethod", "GET")  # n8n's default is GET
+            methods = methods if isinstance(methods, list) else [methods]
+            if node.get("type") == "n8n-nodes-base.webhook" and "POST" in methods:
+                hooks.add(str(params.get("path", "")).strip("/"))
+    return hooks
 
 
 async def check_chroma() -> None:
@@ -85,7 +130,8 @@ async def check_chroma() -> None:
 
 
 # Off on purpose (their launchd agents were removed 2026-09-29) — reported, never failed.
-DARK_BY_DESIGN = "INFO: dark by design — screen recall (screenpipe) + camera sight (moondream)"
+DARK_BY_DESIGN = ("INFO: dark by design — screen recall (screenpipe) + camera sight (moondream);"
+                  " phone voice is on demand (`make phone-voice`)")
 
 CHECKS: dict[str, Callable[[], Awaitable[None]]] = {
     "anthropic": check_anthropic,

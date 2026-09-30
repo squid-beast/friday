@@ -20,5 +20,5 @@ services:
       - "${LIVEKIT_BIND_IP:-127.0.0.1}:7880:7880"
       - "${LIVEKIT_BIND_IP:-127.0.0.1}:7881:7881"
       - "${LIVEKIT_BIND_IP:-127.0.0.1}:7882:7882/udp"
-    restart: unless-stopped
+    restart: "no"  # launchd (make phone-voice) owns its lifecycle; never auto-revive
 

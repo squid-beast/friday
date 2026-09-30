@@ -20,11 +20,11 @@ what's unlocked *today* while later stages are pending.
 
 | Mode | Command | What you get | Needs |
 |---|---|---|---|
-| **Typed chat + app** | `make dashboard` → http://127.0.0.1:8787 | Board / Chat / Studio / Today in the browser; typed chat talks to the full brain (vault, memory, gates, audit) | Anthropic key only — **works now** |
+| **Dashboard + text API** | `make dashboard` → http://127.0.0.1:8787 | The passive one-screen dashboard (Now, Metrics, Today, Jobs, HUD, recent conversation) + `/jobs`; typed turns go to `POST /api/v1/conversation` (Bearer key) — no chat box | Anthropic key only — **works now** |
 | **Talk (console)** | `make voice` | Full voice conversation on the Mac's mic/speakers with barge-in. No Docker, no wake phrase — press Ctrl-C to stop. The Phase 2 acceptance path | All 3 Stage 1 keys + mic permission |
 | **Hands-free (menu bar)** | `uv run python -m client.killswitch` | 😴 in the menu bar; the bundled fallback is "Hey Jarvis" until you train Friday, then "Hey Friday" wakes him. "Stand Down" / ⌥⌘J kills. This is daily-driver mode, started by hand | Same as voice |
-| **Everything, on login** | `make install-launchd` → reboot | All six agents forever: dashboard, killswitch, voiceworker, livekit (Docker), hourly metrics, hourly logrotate. Zero terminals | Stage 2; Docker Desktop set to start at login |
-| **Phone** | Stage 5 (`tailscale serve`) → PWA on the iPhone | Board/Chat/Studio/Today from anywhere on the tailnet; the Voice tab additionally needs `make run` on the Mac | Stage 5 |
+| **Everything, on login** | `make install-launchd` → reboot | Four agents forever: dashboard, killswitch, hourly metrics, hourly logrotate (phone voice on demand: `make phone-voice`). Zero terminals | Stage 2 |
+| **Phone** | Stage 5 (`tailscale serve`) → PWA on the iPhone | The same passive dashboard + `/jobs` from anywhere on the tailnet. Phone-mic voice has NO client today (the browser LiveKit client was removed 2026-09-29) | Stage 5 |
 
 Utility surfaces: `make doctor` (health), `make eval` (router accuracy vs the
 real model), `make test` / `test-integration` / `test-scenario` (no network),
@@ -90,13 +90,11 @@ That's Phase 2 acceptance done.
 make install-launchd
 ```
 
-Installs six `com.friday.*` launch agents: dashboard, killswitch (menu bar
-😴/🎙), voiceworker (phone voice), livekit (docker), hourly metrics, hourly
-logrotate. Screenpipe + moondream agents were removed 2026-09-29 (doctor
-reports them "dark by design"). If you set `HOTKEY`, macOS will prompt for
-**Accessibility** — allow. Docker Desktop itself must be
-set to start at login: Docker Desktop → Settings → General → "Start Docker
-Desktop when you sign in".
+Installs four `com.friday.*` launch agents: dashboard, killswitch (menu bar
+😴/🎙), hourly metrics, hourly logrotate. Phone voice (LiveKit in Docker +
+voiceworker) is on demand: start Docker Desktop, then `make phone-voice`.
+Screenpipe + moondream agents were removed 2026-09-29 (doctor reports them "dark
+by design"). If you set `HOTKEY`, macOS will prompt for **Accessibility** — allow.
 
 ✅ Verify: menu bar shows 😴. Say the active wake phrase shown in the dashboard
 header. Before training that is "Hey Jarvis"; after training it becomes
@@ -104,40 +102,15 @@ header. Before training that is "Hey Jarvis"; after training it becomes
 
 ---
 
-## Stage 3 — Eyes: screenpipe + Moondream (~10 min)
+## Stage 3 — Eyes (PARKED) + Calendar
 
-### 3a. screenpipe (screen recall) — already brew-installed
-
-1. Run `screenpipe` once in a terminal → macOS prompts for **Screen
-   Recording** → allow → restart it (the launchd agent keeps it alive after).
-2. Privacy: `.env` → `SCREENPIPE_EXCLUDE=` comma-separated app names that must
-   NEVER appear in recall — suggested: your banking apps, WhatsApp.
-
-### 3b. Moondream Station (camera description, fully local) — WORKING 2026-08-20
-
-Installed and serving **Moondream 2** on `http://127.0.0.1:2020/v1` (matches
-`.env` `MOONDREAM_ENDPOINT`). Two non-obvious things make it work on a 16GB Mac —
-both are one-time setup already done; documented here so a station update
-doesn't silently break the eyes:
-
-1. **Runs moondream-2, not moondream-3.** Moondream Station is deprecated and its
-   REPL defaults to *Moondream 3 MLX Quantized* on every boot — too heavy for
-   16GB, its service never answers. The launchd agent runs
-   `scripts/moondream_serve.py`, which drives the REPL through a pty:
-   `models switch moondream-2`, answers the interactive requirements confirm,
-   then `start 2020`, and holds it open (KeepAlive restarts on death).
-2. **transformers is pinned to 4.46.3** in the station venv
-   (`~/.moondream-station/venv`). Station ships transformers 5.x, under which
-   moondream-2 emits gibberish tokens. If the camera ever starts returning
-   nonsense, re-pin:
-   ```bash
-   ~/.moondream-station/venv/bin/pip install "transformers==4.46.3"
-   launchctl kickstart -k gui/$(id -u)/com.friday.moondream
-   ```
-
-First camera use triggers the macOS **Camera** permission — allow. Inference is
-~8–16s/query on 16GB (CPU/MPS); functional, not fast. The HF token stays wired
-for a future Moondream 3 upgrade if the machine ever grows.
+Screen recall (screenpipe) and camera sight (Moondream) were removed from the
+running system on 2026-09-28/29: their launchd agents are gone, the router's
+"recall" route answers "That system isn't armed yet, sir.", and "what am I
+holding?" answers "My eyes aren't available right now, sir." — the camera is
+NEVER switched on while no vision model listens (adapters/camera.py probe,
+TDD-pinned). The adapter code stays parked for the on-demand replacement
+planned in docs/PLAN-NEXT.md (Apple Vision OCR + a small local model).
 
 ### 3c. Calendar (one click)
 
@@ -148,66 +121,38 @@ Google account is added in Calendar.app (docs/archive/CALENDAR.md).
 ### ✅ Verify Stage 3
 
 ```bash
-make doctor          # screenpipe + moondream now pass
-make voice           # "what am I holding?" → camera light blinks, he answers
-                     # "what was on my screen an hour ago?" → recall answers
+make doctor          # all clear; "dark by design" names the parked eyes
+make voice           # "what's on my calendar today?" → reads Calendar.app
 ```
 
 ---
 
 ## Stage 4 — Hands: n8n on Hostinger (~20 min, mostly in n8n's UI)
 
-Full walkthrough: **docs/archive/N8N-SETUP.md**. Summary:
+Friday calls **only Friday-owned** n8n workflows — business/client workflows on
+the same n8n are never edited, activated, called, or targeted by a tool
+(DECISIONS 2026-09-29). Base URL = the VPS over the tailnet:
+`N8N_BASE_URL=http://srv1852068.tail8d7575.ts.net:5678` (WireGuard-encrypted).
 
-1. `openssl rand -hex 32` → `.env`: `N8N_WEBHOOK_SECRET=...` and
-   `.env`: `N8N_BASE_URL=https://<your-n8n-domain>`
-2. In n8n, create ONE header-auth credential: name `X-Friday-Secret`, value =
-   that same hex. Reuse it on every webhook below.
-3. Build your five action workflows (Webhook trigger, POST, header auth →
-   your logic → respond). Then register them in **config/tools.yaml** —
-   uncomment the template block, set each `webhook_path` and risk
-   (`safe` runs instantly, `confirm` asks "Shall I proceed, sir?",
-   `pin` demands your spoken PIN, `blocked` refuses).
-   Suggested five: content_pipeline, review_request, lead_followup,
-   booking_reminders (all `confirm`), morning_report (`safe`).
-   Assistant set (added 2026-08-11): job_search, lead_finder, draft_replies
-   (all `safe` — they only read and draft), send_outreach (`confirm`),
-   make_call (`pin` — an AI voice speaking as you is the highest-risk tool;
-   wire Twilio/Vapi/Retell inside n8n, creds never touch the Mac).
-4. Tip: workflows receive `{"utterance": "<what you said>"}` as the body —
-   parse client names, dates, etc. from it in n8n.
+1. `.env`: `N8N_WEBHOOK_SECRET=` (openssl rand -hex 32) and `N8N_API_KEY=`
+   (n8n → Settings → n8n API; used read-only by the HUD + doctor).
+2. A Friday workflow = Webhook trigger (**POST**, path `friday-…`,
+   Authentication = Header Auth credential named `X-Friday-Secret` whose value
+   is that hex) → your logic → Respond to Webhook.
+3. Register it in **config/tools.yaml** (`adapter: adapters.n8n:run`,
+   `webhook_path: /webhook/friday-…`, risk safe|confirm|pin) and add cases to
+   tests/evals/tool_cases.yaml. Activate it in the n8n editor (your call).
+4. `make doctor` FAILS if a registered path has no ACTIVE POST workflow.
+   Workflows receive `{"utterance": "<what you said>", ...}`.
 
-### Metrics for the Mission Board (docs/archive/DASHBOARD.md)
-
-Four more small n8n workflows that RETURN JSON arrays of numbers
-(instagram, bookyourslot, leads, n8n-health) → uncomment their paths in
-**config/metrics.yaml** → `make collect` → the board fills.
-
-### Content Studio (docs/archive/CONTENT-STUDIO.md) — the Instagram section
-
-Two workflows:
-- **Trending** (`/webhook/content-trending`): pulls trending reels/hooks in
-  your niche (IG hashtag search, TikTok Creative Center, an LLM ranking step —
-  your choice) → responds with the items array.
-- **Publish** (`/webhook/content-publish`): receives `{id,title,url,caption}`
-  → posts to Instagram. For the IG connection inside n8n you need a **Meta
-  developer app**: developers.facebook.com → Create App (Business) → add
-  Instagram Graph API → link your IG **Professional** account (it must be
-  connected to a Facebook Page) → generate a long-lived access token with
-  `instagram_content_publish` permission → use n8n's Facebook Graph API node.
-  Note: the Graph API needs media at a public URL; for reels it's often easier
-  to have this workflow push into your scheduler (Metricool/Buffer/Meta
-  Business Suite) instead — the Studio doesn't care which.
-- `.env`: `CONTENT_TRENDING_WEBHOOK=` and `CONTENT_PUBLISH_WEBHOOK=`
+Parked (no Friday tools today): Mission Board metric webhooks
+(config/metrics.yaml) and Content Studio trending/publish (docs/archive/).
 
 ### ✅ Verify Stage 4
 
 ```bash
-curl -s -X POST "$N8N_BASE_URL/webhook/<path>" -H "X-Friday-Secret: <hex>" -d '{}'
-make voice   # "run my content pipeline" → "Shall I proceed, sir?" → "yes"
-             # then: "what did you do today?" → he reads it back
+make doctor   # n8n: reachable, key valid, every registered path served
 ```
-Studio screen → PULL TRENDS → cards appear. That's Phase 4 + Studio acceptance.
 
 ---
 
@@ -229,8 +174,8 @@ over the tailnet. Funnel (public URL, same hostname) started the same day.
 
 Your half, on the iPhone: Tailscale app ON (it's been off 2 weeks) → Safari →
 `http://lohiths-macbook-pro.tail8d7575.ts.net/chat` (https once certs mint) →
-Share → **Add to Home Screen**. Voice tab → CONNECT → allow mic; `make run`
-must be active on the Mac for voice.
+Share → **Add to Home Screen**. (There is no Voice tab or chat box any more —
+the phone shows the passive dashboard and `/jobs`.)
 
 ### Access gate + open world (added 2026-08-11, Lohith's call)
 
@@ -244,8 +189,9 @@ open localhost/tailnet behavior.
 Public access (beyond the tailnet) rides **Tailscale Funnel** on the same
 hostname — requires the HTTPS cert (see the known issue above) and the
 funnel node attribute (admin console prompts on first `tailscale funnel`).
-The Voice tab stays tailnet-only regardless: WebRTC media doesn't traverse
-funnel.
+Phone voice (LiveKit) stays tailnet-only regardless: WebRTC media doesn't
+traverse funnel — and it has no client today (`make phone-voice` starts only
+the server side).
 
 ---
 

@@ -1,11 +1,9 @@
 <script>
-  import GesturePanel from "$lib/components/GesturePanel.svelte";
   import HudPanel from "$lib/components/HudPanel.svelte";
   import JobsPanel from "$lib/components/JobsPanel.svelte";
   import Log from "$lib/components/Log.svelte";
   import MetricsPanel from "$lib/components/MetricsPanel.svelte";
   import NowPanel from "$lib/components/NowPanel.svelte";
-  import StudioPanel from "$lib/components/StudioPanel.svelte";
   import TodayPanel from "$lib/components/TodayPanel.svelte";
   import { status } from "$lib/stores.js";
 
@@ -29,12 +27,10 @@
 
   <div class="grid">
     <NowPanel />
-    <StudioPanel />
     <MetricsPanel />
     <TodayPanel />
     <JobsPanel />
     <div class="wide"><HudPanel /></div>
-    <div class="wide"><GesturePanel /></div>
   </div>
 </section>
 

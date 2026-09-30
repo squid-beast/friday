@@ -80,7 +80,9 @@
           {/each}
         </div>
       {:else}
-        <div class="sub">no snaps yet — say "what am I holding?" and I’ll show you what I see</div>
+        <div class="sub">{data?.eyes
+          ? "no snaps yet — say \"what am I holding?\" and I’ll show you what I see"
+          : "vision offline — no model is listening, so Friday won't take snaps"}</div>
       {/if}
     </div>
 
@@ -94,6 +96,7 @@
       <div class="notes">
         <span class="k">Obsidian memory</span>
         <div class="sub">Friday can answer from your notes without copying them out of Obsidian.</div>
+        <div class="sub">Say "open my notes" to open Obsidian itself.</div>
         {#if rem.notes.length}
           <div class="chips">{#each rem.notes as n (n)}
             <span class="chip note-chip">{n}</span>{/each}</div>
@@ -111,12 +114,12 @@
           <div class="run {run.status}">
             <span class="dot {run.status}"></span>
             <span class="name">{run.name}</span>
-            <span class="v">{run.status} · {run.when}</span>
+            <span class="v">{run.status} · {run.when}{run.today > 1 ? ` · ${run.today}× today` : ""}</span>
           </div>
         {/each}
       {:else}
-        <div class="sub">{autos.armed
-          ? "no runs yet — activate your n8n workflows" : "n8n not configured"}</div>
+        <div class="sub">{autos.error ? autos.error
+          : autos.armed ? "no workflow runs yet" : "n8n not configured"}</div>
       {/if}
     </div>
   </div>

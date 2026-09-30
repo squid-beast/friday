@@ -1,13 +1,26 @@
 <script>
+  /* The last spoken turns, straight from the brain's checkpoint store — voice
+     from the Mac or text from the phone. Read-only, polled; no input here. */
+  import { onMount } from "svelte";
   import { fly } from "svelte/transition";
-  import { messages } from "$lib/stores.js";
+  import { recentConversation } from "$lib/api.js";
 
-  const view = $derived($messages.slice(-6));
+  let view = $state([]);
+
+  async function pull() {
+    try { view = (await recentConversation()).messages ?? []; } catch { /* keep last */ }
+  }
+
+  onMount(() => {
+    pull();
+    const timer = setInterval(pull, 10000);
+    return () => clearInterval(timer);
+  });
 </script>
 
 <main aria-live="polite" aria-label="Conversation log">
   {#each view as m, i (i)}
-    <div class="msg {m.who}" class:question={m.pending}
+    <div class="msg {m.who}"
          transition:fly={{ y: 14, duration: 220 }}>
       {m.text}
     </div>
@@ -28,7 +41,4 @@
   .friday::before { content: "◆ friday"; display: block; font-size: 9px;
     letter-spacing: .25em; text-transform: uppercase; color: var(--ink-dim);
     margin-bottom: 4px; }
-  .question { border-color: var(--accent); color: var(--accent-text); }
-  .question::before { content: "◆ awaiting your word, sir";
-    color: var(--accent-text); }
 </style>

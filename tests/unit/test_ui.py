@@ -105,9 +105,11 @@ def test_single_dashboard_is_voice_only_and_button_free() -> None:
     assert "toggleMacSession" not in everything
     assert "src/lib/components/Composer.svelte" not in SOURCES
     assert "<Log />" in dash
-    for panel in ("NowPanel", "StudioPanel", "MetricsPanel",
-                  "TodayPanel", "JobsPanel", "HudPanel", "GesturePanel"):
+    for panel in ("NowPanel", "MetricsPanel", "TodayPanel", "JobsPanel", "HudPanel"):
         assert panel in dash, f"dashboard missing {panel}"
+    for parked in ("StudioPanel", "GesturePanel"):  # parked 2026-09-29: kept, not mounted
+        assert parked not in dash, f"{parked} is parked and must not poll"
+        assert f"src/lib/components/{parked}.svelte" in SOURCES
     assert "wake_phrase_active" in dash
     assert "<button" not in everything
     assert 'role="button"' not in everything
@@ -118,6 +120,8 @@ def test_conversation_is_labelled_live_and_animated() -> None:
     log = SOURCES["src/lib/components/Log.svelte"]
     assert 'aria-live="polite"' in log
     assert "transition:fly" in log
+    assert "recentConversation" in log and "setInterval" in log  # fed by the brain's store
+    assert "src/lib/voice.js" not in SOURCES  # orphaned browser-voice module removed
     assert "Friday will show your most recent spoken turns here." in log
 
 

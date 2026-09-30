@@ -49,7 +49,7 @@ def test_voice_page_removed_from_ui(served: str) -> None:
 
 def test_voice_token_unconfigured_400s(served: str) -> None:
     with pytest.raises(urllib.error.HTTPError) as err:
-        _get(f"{served}/api/voice-token")
+        _get(f"{served}/api/v1/voice/session")
     assert err.value.code == 400  # blank VOICE_WS_URL in tests — honest refusal
 
 
@@ -64,7 +64,7 @@ def test_voice_token_configured_returns_scoped_jwt(
     monkeypatch.setenv("LIVEKIT_API_SECRET", "s" * 32)
     get_settings.cache_clear()
     try:
-        status, body = _get(f"{served}/api/voice-token")
+        status, body = _get(f"{served}/api/v1/voice/session")
         data = json.loads(body)
         assert status == 200 and data["url"].startswith("wss://")
         payload = data["token"].split(".")[1]
@@ -82,7 +82,7 @@ def test_api_content_lists_from_store(
 
     monkeypatch.setattr(content_mod, "_DB", tmp_path / "content.db")
     content_mod.upsert([{"id": "t1", "title": "Storefront reel", "score": 91}])
-    status, body = _get(f"{served}/api/content")
+    status, body = _get(f"{served}/api/v1/studio/queue")
     data = json.loads(body)
     assert status == 200
     assert data["items"][0]["title"] == "Storefront reel"
@@ -91,7 +91,7 @@ def test_api_content_lists_from_store(
 
 def test_api_content_publish_requires_id(served: str) -> None:
     with pytest.raises(urllib.error.HTTPError) as err:
-        _post(f"{served}/api/content/publish", json.dumps({"caption": "x"}).encode())
+        _post(f"{served}/api/v1/studio/publish", json.dumps({"caption": "x"}).encode())
     assert err.value.code == 400
 
 
@@ -102,7 +102,7 @@ def test_api_content_skip_roundtrip(
 
     monkeypatch.setattr(content_mod, "_DB", tmp_path / "content.db")
     content_mod.upsert([{"id": "t1", "title": "Reel", "score": 50}])
-    status, body = _post(f"{served}/api/content/skip", json.dumps({"id": "t1"}).encode())
+    status, body = _post(f"{served}/api/v1/studio/skip", json.dumps({"id": "t1"}).encode())
     assert status == 200
     assert json.loads(body)["items"] == []  # skipped items leave the review queue
 
@@ -111,7 +111,7 @@ def test_api_today_shape(served: str, monkeypatch: pytest.MonkeyPatch) -> None:
     import integrations.api as api_mod
 
     monkeypatch.setattr(api_mod, "audit_today", list)
-    status, body = _get(f"{served}/api/today")
+    status, body = _get(f"{served}/api/v1/agenda")
     data = json.loads(body)
     assert status == 200
     assert "calendar" in data and "activity" in data

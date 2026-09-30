@@ -38,7 +38,7 @@ def test_binds_localhost_only(served: str) -> None:
 
 
 def test_api_summary_serves_points(served: str) -> None:
-    status, body = _get(f"{served}/api/summary")
+    status, body = _get(f"{served}/api/v1/metrics")
     assert status == 200
     data = json.loads(body)
     assert data["instagram"]["reel_views_7d"][0]["value"] == 12000.0
@@ -88,7 +88,7 @@ def test_api_ask_round_trips_through_the_bridge(
             return {"reply": f"Heard: {text}", "pending": False}
 
     monkeypatch.setattr(server_mod, "_bridge", FakeBridge())
-    status, body = _post(f"{served}/api/ask", json.dumps({"text": "hello"}).encode())
+    status, body = _post(f"{served}/api/v1/conversation", json.dumps({"text": "hello"}).encode())
     assert status == 200
     assert json.loads(body) == {"reply": "Heard: hello", "pending": False}
 
@@ -98,7 +98,7 @@ def test_api_ask_malformed_body_400s(served: str, monkeypatch: pytest.MonkeyPatc
 
     monkeypatch.setattr(server_mod, "_bridge", object())  # must never be reached
     with pytest.raises(urllib.error.HTTPError) as err:
-        _post(f"{served}/api/ask", b"not json")
+        _post(f"{served}/api/v1/conversation", b"not json")
     assert err.value.code == 400
 
 

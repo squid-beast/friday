@@ -92,6 +92,19 @@ def open_in_obsidian(note: str = "", *, run=None) -> str:
     return f"Opening {note or vault} in Obsidian, sir."
 
 
+_NOTE_NAME = re.compile(r"\bnote (?:called|named|titled) [\"']?(.+?)[\"']?[.?!]*$", re.I)
+
+
+async def open_tool(_arg: str, utterance: str) -> str:
+    """The open_obsidian tool: "open my notes" -> the vault; "open the note called
+    X" -> note X. Failures become a spoken fact, never a crash."""
+    match = _NOTE_NAME.search(utterance.strip())
+    try:
+        return await asyncio.to_thread(open_in_obsidian, match.group(1) if match else "")
+    except ValueError as exc:
+        return f"Obsidian wouldn't open, sir: {exc}"
+
+
 async def search(query: str, max_hits: int = 5) -> list[VaultHit]:
     return await asyncio.to_thread(_search_sync, query, max_hits)
 

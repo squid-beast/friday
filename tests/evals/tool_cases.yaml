@@ -1,0 +1,52 @@
+# Tool-selection eval (added 2026-09-29): utterance -> the tool ops_select must
+# pick from the REAL config/tools.yaml, or "" when no tool fits (the business
+# tools that were unlinked must never come back via a near-miss). PASS >= 90%.
+# Any tools.yaml description change updates this file in the same session.
+cases:
+  - utterance: "what's the weather like outside?"
+    expect: weather
+  - utterance: "will it rain today, do I need an umbrella?"
+    expect: weather
+  - utterance: "remind me to call mom at six"
+    expect: reminder
+  - utterance: "remind me to renew the car registration"
+    expect: reminder
+  - utterance: "what's on my calendar today?"
+    expect: calendar_today
+  - utterance: "do I have any meetings this afternoon?"
+    expect: calendar_today
+  - utterance: "book a meeting with the dentist tomorrow at 3pm"
+    expect: calendar_event
+  - utterance: "put lunch with Sam on my calendar tomorrow at noon"
+    expect: calendar_event
+  - utterance: "how many times did you wake up today?"
+    expect: metrics_report
+  - utterance: "read me your dashboard numbers"
+    expect: metrics_report
+  - utterance: "open my apps"
+    expect: open_apps
+  - utterance: "open my morning workspace"
+    expect: open_apps
+  - utterance: "play some music on Spotify"
+    expect: spotify_play
+  - utterance: "skip this song"
+    expect: spotify_play
+  - utterance: "what's playing right now?"
+    expect: spotify_play
+  - utterance: "how's my job search going?"
+    expect: jobs_status
+  - utterance: "show me my jobs"
+    expect: jobs_status
+  - utterance: "any job applications waiting on me?"
+    expect: jobs_status
+  - utterance: "open my notes in Obsidian"
+    expect: open_obsidian
+  - utterance: "open the note called weekly review"
+    expect: open_obsidian
+  # no tool fits — must select nothing (unlinked business tools stay unlinked)
+  - utterance: "run lead intake for the new client"
+    expect: ""
+  - utterance: "file a maintenance request for unit 4"
+    expect: ""
+  - utterance: "call the dentist and reschedule my appointment"
+    expect: ""

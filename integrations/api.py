@@ -104,11 +104,30 @@ def daemon_stand_down(_body: dict) -> dict:
     return {"requested": "stand_down", "daemon": control.read_state()}
 
 
+def _port_open(port: int) -> bool:
+    import socket
+
+    try:
+        with socket.create_connection(("127.0.0.1", port), 0.2):
+            return True
+    except OSError:
+        return False
+
+
+def _phone_voice_installed() -> bool:
+    """`make phone-voice` installed the worker agent (on-demand group)."""
+    from pathlib import Path
+
+    return (Path.home() / "Library/LaunchAgents/com.friday.voiceworker.plist").exists()
+
+
 def status(_body: dict) -> dict:
     """Everything at a glance for the board: what's armed, what's queued, what's
-    next. Flags read config only — no network calls, so the strip renders instantly."""
+    next. Flags are TRUE only when the thing can actually run: n8n ops needs a
+    registered Friday n8n tool (not just a URL); phone voice needs LiveKit's port."""
     from client import control
     from config.settings import get_settings
+    from config.tools import load_tools
 
     s = get_settings()
     today = today_view({})
@@ -130,9 +149,10 @@ def status(_body: dict) -> dict:
         "systems": {
             "brain": bool(s.anthropic_api_key),
             "voice keys": bool(s.deepgram_api_key and s.cartesia_api_key),
-            "n8n ops": bool(s.n8n_base_url),
-            "studio": bool(s.content_trending_webhook),
-            "phone voice": bool(s.voice_ws_url),
+            "n8n ops": bool(s.n8n_base_url) and any(
+                t.adapter.startswith("adapters.n8n") for t in load_tools()),
+            "phone voice": bool(s.voice_ws_url) and _phone_voice_installed()
+            and _port_open(7880),
             "pin": bool(s.friday_pin),
             "gate": bool(s.app_access_key),
             "voice lock": voice_lock_ready,
@@ -141,34 +161,6 @@ def status(_body: dict) -> dict:
         "next_event": events[0] if events else None,
         "activity": today["activity"][-3:],
     }
-
-
-def content_list(_body: dict) -> dict:
-    return {
-        "items": [item.model_dump() for item in content.items()],
-        "armed": bool(content.get_settings().content_trending_webhook),
-    }
-
-
-def content_refresh(_body: dict) -> dict:
-    pulled = asyncio.run(content.pull())
-    return {"pulled": pulled, **content_list({})}
-
-
-def content_publish(body: dict) -> dict:
-    item_id = str(body.get("id", "")).strip()
-    if not item_id:
-        raise ValueError("missing item id")
-    result = asyncio.run(content.publish(item_id, str(body.get("caption", ""))))
-    return {"result": result, **content_list({})}
-
-
-def content_skip(body: dict) -> dict:
-    item_id = str(body.get("id", "")).strip()
-    if not item_id:
-        raise ValueError("missing item id")
-    content.set_status(item_id, "skipped")
-    return content_list({})
 
 
 def voice_token(_body: dict) -> dict:

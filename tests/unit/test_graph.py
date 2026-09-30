@@ -94,6 +94,7 @@ def test_unknown_route_still_falls_back_to_unarmed() -> None:
 
     assert _pick(FridayState(route="")) == "unarmed"
     assert _pick(FridayState(route="nonsense")) == "unarmed"
+    assert _pick(FridayState(route="recall")) == "unarmed"  # screen recall disarmed 2026-09-29
 
 
 async def test_history_carries_across_turns_same_thread() -> None:

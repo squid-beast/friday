@@ -10,14 +10,20 @@ A frame is VALIDATED before it is described: a black/unreadable frame (what a
 TCC-blocked camera produces — imagesnap writes black and still exits 0) is
 rejected, so Friday never narrates darkness as if it saw something. Every real
 frame is saved to the snaps dir so the dashboard can show what it saw.
+
+SAFETY: before the lens is touched, the describer must be listening. With no
+vision model (Moondream is parked since 2026-09-29) the camera light never comes
+on — Friday says her eyes are offline instead of capturing a frame for nobody.
 """
 
 import asyncio
 import logging
 import shutil
+import socket
 import tempfile
 import time
 from pathlib import Path
+from urllib.parse import urlparse
 
 from config.settings import get_settings
 
@@ -34,11 +40,26 @@ async def look(question: str) -> str:
     settings = get_settings()
     if Path(settings.camera_off_file).exists():
         raise PermissionError("camera is cut")
+    if not await asyncio.to_thread(_eyes_up):
+        raise ConnectionError("no vision model is listening — camera left off")
     with tempfile.TemporaryDirectory() as tmp:
         frame = Path(tmp) / "frame.jpg"
         await _capture(frame)
         await asyncio.to_thread(_validate_and_save, frame, settings)
         return await asyncio.to_thread(_describe, frame, question)
+
+
+def _eyes_up() -> bool:
+    """Cheap TCP probe of the describer endpoint (no request, no model load).
+    # ponytail: port-level only — proves a server is up, not that a model is loaded
+    # (Moondream Station binds :2020 before its model answers). A real check costs an
+    # 8-16s inference; the look itself still refuses honestly if description fails."""
+    url = urlparse(get_settings().moondream_endpoint)
+    try:
+        with socket.create_connection((url.hostname or "127.0.0.1", url.port or 80), 0.5):
+            return True
+    except OSError:
+        return False
 
 
 async def _capture(frame: Path) -> None:

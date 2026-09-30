@@ -79,14 +79,14 @@ def test_query_key_sets_cookie_and_redirects_clean(served: str) -> None:
 
 def test_bearer_header_passes(served: str) -> None:
     status, body, _ = _get(
-        f"{served}/api/today", headers={"Authorization": f"Bearer {KEY}"}
+        f"{served}/api/v1/agenda", headers={"Authorization": f"Bearer {KEY}"}
     )
     assert status == 200 and b"calendar" in body
 
 
 def test_post_without_key_never_reaches_brain(served: str) -> None:
     request = urllib.request.Request(
-        f"{served}/api/ask",
+        f"{served}/api/v1/conversation",
         data=json.dumps({"text": "hello"}).encode(),
         headers={"Content-Type": "application/json"},
         method="POST",

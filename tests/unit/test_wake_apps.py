@@ -36,11 +36,18 @@ def test_launch_opens_spotify_then_chrome_tabs():
     assert launched == ["Spotify", "Chrome (2 tabs)"]
 
 
-def test_disabled_is_a_noop():
+def test_wake_switch_off_skips_the_wake_launch():
+    calls = []
+    out = launch_apps(settings=_settings(wake_apps_enabled=False),
+                      run=lambda c, **k: calls.append(c) or _ok(c), on_wake=True)
+    assert out == [] and calls == []
+
+
+def test_wake_switch_never_disarms_the_spoken_tool():
     calls = []
     out = launch_apps(settings=_settings(wake_apps_enabled=False),
                       run=lambda c, **k: calls.append(c) or _ok(c))
-    assert out == [] and calls == []
+    assert out == ["Spotify", "Chrome (2 tabs)"] and len(calls) == 2
 
 
 def test_no_spotify_when_off():
@@ -71,6 +78,6 @@ async def test_tool_reports_what_it_opened(monkeypatch):
     assert "Spotify and Chrome (4 tabs)" in await apps.launch("", "open my apps")
 
 
-async def test_tool_when_disabled(monkeypatch):
+async def test_tool_when_nothing_opens(monkeypatch):
     monkeypatch.setattr(apps, "launch_apps", lambda: [])
-    assert "switched off" in await apps.launch("", "open my apps")
+    assert "Nothing opened" in await apps.launch("", "open my apps")

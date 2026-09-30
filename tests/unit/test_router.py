@@ -72,3 +72,17 @@ async def test_router_caps_output_tokens() -> None:
     llm = FakeLLM(["chat"])
     await route_node(_state("hello"), think=llm.think)
     assert llm.calls[0]["max_tokens"] == 16  # one-word answer, never pay for more
+
+
+async def test_echoed_tool_name_routes_to_ops() -> None:
+    """Haiku sometimes answers with the TOOL name instead of a route word
+    ("open_obsidian"); that is an ops request, not a fallback to chat."""
+    for raw in ("open_obsidian", "jobs_status", "Route: spotify_play"):
+        llm = FakeLLM([raw])
+        assert (await route_node(_state("open my notes"), think=llm.think))["route"] == "ops", raw
+
+
+async def test_recall_is_still_a_route_so_it_can_answer_honestly() -> None:
+    llm = FakeLLM(["recall"])
+    out = await route_node(_state("what was that page I saw yesterday?"), think=llm.think)
+    assert out["route"] == "recall"  # graph lands it on `unarmed`: sense switched off

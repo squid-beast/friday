@@ -80,27 +80,91 @@ def n8n(monkeypatch):
     get_settings.cache_clear()
 
 
-async def test_recent_normalizes_runs_and_counts_today(n8n, monkeypatch) -> None:
-    import time
-    today = time.strftime("%Y-%m-%d", time.localtime())
+def _utc(hour: int, minute: int = 0, days_ago: int = 0) -> str:
+    """A LOCAL wall-clock time today (or days ago) as n8n's UTC 'Z' string."""
+    from datetime import UTC, datetime, timedelta
+
+    local = datetime.now().astimezone().replace(hour=hour, minute=minute, second=0,
+                                                microsecond=0) - timedelta(days=days_ago)
+    return local.astimezone(UTC).strftime("%Y-%m-%dT%H:%M:%S.000Z")
+
+
+def _run(eid: str, wid: str, started: str, status: str = "success") -> dict:
+    return {"id": eid, "workflowId": wid, "status": status,
+            "startedAt": started, "stoppedAt": started}
+
+
+def _mock_n8n(monkeypatch, workflows, runs, status: int = 200) -> None:
+    """A fake n8n REST API: workflows list, per-workflow latest, newest-first paging."""
+    newest = sorted(runs, key=lambda r: r["startedAt"], reverse=True)
 
     def handler(request: httpx.Request) -> httpx.Response:
-        if "/workflows" in str(request.url):
-            return httpx.Response(200, json={"data": [{"id": "7", "name": "Vendor Report"}]})
-        return httpx.Response(200, json={"data": [
-            {"id": "1", "workflowId": "7", "status": "success",
-             "startedAt": f"{today}T09:00:00.000Z", "stoppedAt": f"{today}T09:00:04.000Z"},
-            {"id": "2", "workflowId": "7", "status": "error",
-             "startedAt": f"{today}T10:00:00.000Z", "stoppedAt": f"{today}T10:00:01.000Z"}]})
+        if status != 200:
+            return httpx.Response(status, json={})
+        q = request.url.params
+        if request.url.path.endswith("/workflows"):
+            return httpx.Response(200, json={"data": workflows})
+        if "workflowId" in q:
+            mine = [r for r in newest if r["workflowId"] == q["workflowId"]]
+            return httpx.Response(200, json={"data": mine[:1]})
+        start, page = int(q.get("cursor", 0)), int(q.get("limit", 250))
+        chunk = newest[start:start + page]
+        more = start + page < len(newest)
+        return httpx.Response(200, json={"data": chunk,
+                                         "nextCursor": str(start + page) if more else None})
 
     monkeypatch.setattr(automations.httpx, "AsyncClient",
         lambda **k: _RealAsyncClient(transport=httpx.MockTransport(handler), **{
             x: k[x] for x in k if x in ("base_url", "headers", "timeout")}))
+
+
+_WFS = [{"id": "7", "name": "Vendor Report", "active": True},
+        {"id": "9", "name": "Reminder Scheduler", "active": True},
+        {"id": "3", "name": "Old Archived Flow", "active": False}]
+
+
+async def test_one_row_per_active_workflow_local_time_and_dates(n8n, monkeypatch) -> None:
+    from datetime import datetime, timedelta
+
+    _mock_n8n(monkeypatch, _WFS, [
+        _run("5", "9", _utc(11, 5)), _run("4", "9", _utc(11, 0)),
+        _run("1", "7", _utc(9, 0, 1), "error"),  # Vendor Report last ran YESTERDAY
+        _run("0", "3", _utc(8, 0)),  # inactive workflow: never a row
+    ])
     out = await automations.recent()
-    assert out["armed"] is True
-    assert out["counts"] == {"success": 1, "error": 1}
-    assert out["runs"][0] == {"id": "1", "name": "Vendor Report",
-                              "status": "success", "when": "09:00"}
+    assert "error" not in out and out["counts"] == {"success": 3}
+    yesterday = (datetime.now() - timedelta(days=1)).strftime("%b %d")
+    assert out["runs"] == [
+        {"id": "5", "name": "Reminder Scheduler", "status": "success", "when": "11:05",
+         "today": 2},
+        {"id": "1", "name": "Vendor Report", "status": "error", "when": f"{yesterday} 09:00",
+         "today": 0},
+    ]
+
+
+async def test_a_busy_scheduler_cannot_push_other_workflows_off(n8n, monkeypatch) -> None:
+    monkeypatch.setattr(automations, "_PAGE", 15)  # 41 runs today -> 3 pages
+    busy = [_run(f"s{i}", "9", _utc(10, i % 60)) for i in range(40)]
+    _mock_n8n(monkeypatch, _WFS, [*busy, _run("v1", "7", _utc(1, 0))])
+    out = await automations.recent()
+    assert [r["name"] for r in out["runs"]] == ["Reminder Scheduler", "Vendor Report"]
+    assert out["runs"][0]["today"] == 40 and out["counts"] == {"success": 41}
+
+
+async def test_recent_reports_n8n_errors_instead_of_hiding_them(n8n, monkeypatch) -> None:
+    _mock_n8n(monkeypatch, _WFS, [], status=401)
+    out = await automations.recent()
+    assert out["error"] == "n8n answered 401" and out["runs"] == []
+
+
+async def test_recent_unreachable_is_named(n8n, monkeypatch) -> None:
+    def down(request: httpx.Request) -> httpx.Response:
+        raise httpx.ConnectError("no route")
+
+    monkeypatch.setattr(automations.httpx, "AsyncClient",
+        lambda **k: _RealAsyncClient(transport=httpx.MockTransport(down), **{
+            x: k[x] for x in k if x in ("base_url", "headers", "timeout")}))
+    assert (await automations.recent())["error"] == "n8n unreachable"
 
 
 async def test_recent_unconfigured_is_empty_not_a_crash(monkeypatch) -> None:
@@ -110,3 +174,13 @@ async def test_recent_unconfigured_is_empty_not_a_crash(monkeypatch) -> None:
     out = await automations.recent()
     assert out == {"runs": [], "counts": {}, "armed": False}
     get_settings.cache_clear()
+
+
+def test_hud_payload_is_trimmed_and_reports_the_eyes(monkeypatch) -> None:
+    from integrations import api_hud
+
+    monkeypatch.setattr(api_hud, "_eyes_up", lambda: False)
+    monkeypatch.setattr(api_hud, "_cached", lambda key, fetch: {})  # no network in unit tests
+    data = api_hud.hud({})
+    assert set(data) == {"system", "weather", "reminders", "automations", "daemon", "eyes"}
+    assert data["eyes"] is False  # Snaps card says the camera is off, truthfully

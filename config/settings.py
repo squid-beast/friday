@@ -100,14 +100,6 @@ class Settings(BaseSettings):
     # Highest-risk gate (Phase 6) — spoken 4-digit PIN; blank locks risk=pin tools shut
     friday_pin: str = ""
 
-    # Calling (PIN-gated) — Friday places a real phone call in sir's stead via a
-    # telephony provider. Blank provider = the tool refuses (unconfigured). See
-    # docs/CALLS.md for what to sign up for. Provider: "vapi" | "twilio" | "".
-    telephony_provider: str = ""
-    telephony_api_key: str = ""
-    telephony_from_number: str = ""  # the number calls originate from (E.164)
-    telephony_agent_id: str = ""  # provider-side assistant/agent id (Vapi), optional
-
     # Weather sense (Open-Meteo, keyless) — the city Friday reports on
     weather_city: str = ""
 

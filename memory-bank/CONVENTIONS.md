@@ -104,3 +104,12 @@ Replace the single file in adapters/ keeping the same interface signature. Nothi
   `static_files.StaticFiles` (contained serving). server.py only routes.
 - API tests use `tests/api_harness.py` helpers + the `served` fixture in
   tests/unit/conftest.py.
+
+## n8n + tools (2026-09-29)
+- Friday may call ONLY Friday-owned n8n workflows: POST webhook + headerAuth
+  `X-Friday-Secret`. Business/client workflows are never edited, activated, called,
+  or targeted by a tool. `make doctor` enforces "registered path = active POST".
+- Every tools.yaml change updates tests/evals/tool_cases.yaml (every tool covered)
+  and, if routing wording changes, router_cases.yaml — run `make eval` (both >=90%).
+- Local-first: a capability that reads local data (jobs, notes, calendar) is a
+  local tool, not an n8n round-trip.

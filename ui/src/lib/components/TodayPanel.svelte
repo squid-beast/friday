@@ -3,7 +3,12 @@
   import { onMount } from "svelte";
   import { agenda } from "$lib/api.js";
   let day = $state({ calendar: [], activity: [] });
-  onMount(async () => { try { day = await agenda(); } catch { /* keep empty */ } });
+  async function pull() { try { day = await agenda(); } catch { /* keep last */ } }
+  onMount(() => {
+    pull();
+    const timer = setInterval(pull, 60000);
+    return () => clearInterval(timer);
+  });
 </script>
 
 
