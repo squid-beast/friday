@@ -74,3 +74,14 @@ def test_unknown_group_fails_loudly(home: Path) -> None:
     result = _run(home, ON_DEMAND="nope")
     assert result.returncode != 0 and "unknown on-demand group" in result.stderr
     assert _installed(home) == set()
+
+
+def test_tunnel_group_is_independent_of_core_and_phone(home: Path) -> None:
+    _run(home)
+    assert _run(home, ON_DEMAND="tunnel").returncode == 0
+    assert _installed(home) == _CORE | {"com.friday.tunnel.plist"}
+    rendered = (home / "Library/LaunchAgents/com.friday.tunnel.plist").read_text()
+    assert "__CLOUDFLARED__" not in rendered and "__HOME__" not in rendered
+    assert _run(home, ON_DEMAND_OFF="tunnel").returncode == 0
+    assert _installed(home) == _CORE
+    assert "docker compose down" not in _calls(home)  # only phone-off stops the container

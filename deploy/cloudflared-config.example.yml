@@ -1,0 +1,12 @@
+# friday · deploy/cloudflared-config.example.yml
+# Copy to ~/.cloudflared/config.yml after `cloudflared tunnel create friday`
+# and replace <TUNNEL-UUID> with the id that command printed. The tunnel only
+# exposes the dashboard port; the Mac's files, mic, camera and vault stay local.
+tunnel: friday
+credentials-file: /Users/<you>/.cloudflared/<TUNNEL-UUID>.json
+
+ingress:
+  - hostname: friday.paypilotlabs.com
+    service: http://127.0.0.1:8787
+  # anything else -> 404 (never proxy a second service by accident)
+  - service: http_status:404

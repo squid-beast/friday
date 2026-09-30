@@ -1,5 +1,8 @@
 # Friday — Deploy Plan: GitHub → VPS → friday.paypilotlabs.com
 
+> **SUPERSEDED 2026-09-30 by `docs/DEPLOY.md`** (Phase 6: the Mac stays the brain behind a
+> Cloudflare Tunnel + Access). This VPS re-host plan is kept only as a reference alternative.
+
 > Companion to `docs/PLAN-NEXT.md` (features) and `docs/SYSTEM-REVIEW.md` (current state).
 > Goal: Friday's dashboard + Jobs command center live at **https://friday.paypilotlabs.com**, running on the
 > Hostinger VPS (KVM 4, 2.25.89.115), deployed automatically from a **private** GitHub repo, secure by default,

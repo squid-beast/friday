@@ -23,8 +23,9 @@ def test_all_agents_present() -> None:
         "com.friday.logrotate.plist",
         "com.friday.metrics.plist",
     ]  # screenpipe+moondream removed, phone voice on-demand (09-29); checkin added (09-30)
-    assert [p.name for p in _ON_DEMAND] == [
-        "com.friday.livekit.plist", "com.friday.voiceworker.plist"]
+    assert [p.relative_to(_LAUNCHD / "on-demand").as_posix() for p in _ON_DEMAND] == [
+        "phone/com.friday.livekit.plist", "phone/com.friday.voiceworker.plist",
+        "tunnel/com.friday.tunnel.plist"]
 
 
 @pytest.mark.parametrize("path", _PLISTS + _ON_DEMAND, ids=lambda p: p.stem)
@@ -82,3 +83,13 @@ def test_proactive_checkin_is_a_calendar_nudge_not_a_daemon() -> None:
     assert [(t["Hour"], t["Minute"]) for t in data["StartCalendarInterval"]] == [
         (9, 0), (13, 0), (19, 0)]
     assert data["RunAtLoad"] is False and "KeepAlive" not in data
+
+
+def test_tunnel_serves_only_the_dashboard_and_restarts() -> None:
+    data = plistlib.loads((_LAUNCHD / "on-demand" / "tunnel" / "com.friday.tunnel.plist")
+                          .read_bytes())
+    assert data["ProgramArguments"][0] == "__CLOUDFLARED__"
+    assert data["ProgramArguments"][-2:] == ["run", "friday"]
+    assert data["KeepAlive"] is True
+    example = (_LAUNCHD.parent / "deploy" / "cloudflared-config.example.yml").read_text()
+    assert "service: http://127.0.0.1:8787" in example and "http_status:404" in example

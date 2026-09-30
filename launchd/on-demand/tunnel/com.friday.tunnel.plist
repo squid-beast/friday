@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>Label</key>
+	<string>com.friday.tunnel</string>
+	<!-- Cloudflare Tunnel: friday.paypilotlabs.com -> http://127.0.0.1:8787 (docs/DEPLOY.md).
+	     On demand: `make tunnel` / `make tunnel-off`. Only after the owner-voice lock is armed. -->
+	<key>ProgramArguments</key>
+	<array>
+		<string>__CLOUDFLARED__</string>
+		<string>tunnel</string>
+		<string>--config</string>
+		<string>__HOME__/.cloudflared/config.yml</string>
+		<string>run</string>
+		<string>friday</string>
+	</array>
+	<key>RunAtLoad</key>
+	<true/>
+	<key>KeepAlive</key>
+	<true/>
+	<key>StandardOutPath</key>
+	<string>__STATE__/logs/tunnel.log</string>
+	<key>StandardErrorPath</key>
+	<string>__STATE__/logs/tunnel.log</string>
+</dict>
+</plist>

@@ -7,7 +7,7 @@
 # eval:      router/persona evals (armed in Phase 2+)
 # doctor:    scripts/healthcheck.py full mode (real API pings)
 # snapshot:  scripts/snapshot.sh -> ~/friday-snapshots/ (the no-git safety net)
-.PHONY: setup run voice gesture test test-unit test-integration test-scenario lint eval doctor snapshot install-launchd phone-voice phone-voice-off collect dashboard ui
+.PHONY: setup run voice gesture test test-unit test-integration test-scenario lint eval doctor snapshot install-launchd phone-voice phone-voice-off tunnel tunnel-off collect dashboard ui
 
 setup:
 	uv sync
@@ -42,6 +42,12 @@ phone-voice:  # on demand: LiveKit + voiceworker server side (start Docker Deskt
 
 phone-voice-off:  # unload + remove only those two agents; stops the LiveKit container
 	@ON_DEMAND_OFF=phone bash scripts/install_launchd.sh
+
+tunnel:  # Cloudflare Tunnel -> friday.paypilotlabs.com (docs/DEPLOY.md; voice lock first)
+	@ON_DEMAND=tunnel bash scripts/install_launchd.sh
+
+tunnel-off:  # unload + remove the tunnel agent only
+	@ON_DEMAND_OFF=tunnel bash scripts/install_launchd.sh
 
 collect:
 	uv run python -m integrations.collect
