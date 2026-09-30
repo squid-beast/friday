@@ -1,0 +1,72 @@
+/* friday-ui · app.css — one tokenized visual system for the whole app. */
+:root {
+  color-scheme: light;
+  --bg: #f3efe7;
+  --surface: #fbf8f2;
+  --line: #d7d0c4;
+  --ink: #1f2328;
+  --ink-dim: #676b73;
+  --accent: #2d6a5a;
+  --accent-text: #205042;
+  --accent-deep: #e3efe8;
+}
+* { box-sizing: border-box; margin: 0; }
+html, body { height: 100%; }
+body {
+  font-family: ui-monospace, "SF Mono", Menlo, monospace;
+  font-size: 14px; line-height: 1.6;
+  background:
+    linear-gradient(180deg, var(--bg), var(--surface)),
+    linear-gradient(90deg, var(--line), var(--line));
+  color: var(--ink);
+  height: 100dvh;
+}
+body::before {
+  content: ""; position: fixed; inset: 0; z-index: -1;
+  background-image:
+    radial-gradient(circle at top left, var(--surface), transparent 42%),
+    linear-gradient(180deg, transparent, var(--bg));
+}
+h1 { font-size: 13px; font-weight: 700; letter-spacing: .38em;
+  text-transform: uppercase; }
+.ruler { flex: 1; min-width: 60px; height: 10px; border: 1px solid var(--line);
+  border-radius: 999px;
+  background: repeating-linear-gradient(90deg,
+    var(--ink-dim) 0 1px, transparent 1px 9px);
+  background-size: 100% 4px; background-position: center;
+  background-repeat: no-repeat; }
+.chip {
+  border: 1px solid var(--line); border-radius: 999px; background: var(--surface);
+  color: var(--ink-dim); font-size: 10px; letter-spacing: .12em;
+  text-transform: uppercase; padding: 2px 8px; white-space: nowrap;
+}
+.chip.on { color: var(--ink); }
+.card { border: 1px solid var(--line); border-radius: 18px;
+  background: var(--surface); }
+.row { display: flex; gap: 10px; justify-content: space-between;
+  padding: 7px 0; border-top: 1px solid var(--line); font-size: 12px; }
+.row .k { color: var(--ink-dim); letter-spacing: .06em;
+  text-transform: uppercase; }
+.row .v { text-align: right; overflow: hidden; text-overflow: ellipsis;
+  white-space: nowrap; }
+input {
+  flex: 1; min-width: 0; font: inherit; color: var(--ink);
+  background: var(--surface); border: 1px solid var(--line); border-radius: 16px;
+  padding: 10px 14px; min-height: 44px; outline: none; letter-spacing: .02em;
+}
+input:focus { border-color: var(--accent); }
+input::placeholder { color: var(--ink-dim); }
+button {
+  font: inherit; font-weight: 700; letter-spacing: .2em;
+  text-transform: uppercase; color: var(--ink); background: var(--accent-deep);
+  border: 1px solid var(--accent); border-radius: 16px;
+  padding: 10px 14px; min-height: 44px; min-width: 44px; cursor: pointer;
+}
+button:disabled { opacity: .4; }
+.ghost { background: var(--surface); border-color: var(--line);
+  color: var(--ink-dim); font-size: 11px; }
+.ghost.live { color: var(--accent-text); border-color: var(--accent); }
+.spark { display: flex; align-items: flex-end; gap: 2px; height: 24px; flex: 1;
+  max-width: 90px; }
+.spark i { flex: 1; background: var(--ink-dim); min-height: 2px; }
+.spark i:last-child { background: var(--accent); }

@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>Label</key>
+	<string>com.jarvis.moondream</string>
+	<key>ProgramArguments</key>
+	<array>
+		<!-- A fresh REPL boot always makes md3-MLX (manifest default) active and
+		     rewrites config's current_model, so `start` alone serves md3 — too
+		     heavy for 16GB, never answers. moondream_serve.py drives the REPL
+		     through a pty: `models switch moondream-2`, answers the TTY
+		     requirements confirm, then `start 2020`, and holds it open so
+		     KeepAlive restarts on death. Needs transformers==4.46.3 in the
+		     station venv (5.x -> gibberish). Rewired live 2026-08-20. -->
+		<string>__HOME__/.moondream-station/venv/bin/python3</string>
+		<string>__REPO__/scripts/moondream_serve.py</string>
+	</array>
+	<key>RunAtLoad</key>
+	<true/>
+	<key>KeepAlive</key>
+	<true/>
+	<key>StandardOutPath</key>
+	<string>__STATE__/logs/moondream.log</string>
+	<key>StandardErrorPath</key>
+	<string>__STATE__/logs/moondream.log</string>
+</dict>
+</plist>

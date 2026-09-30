@@ -1,0 +1,127 @@
+# Tool registry — the ONLY place capabilities are declared (CONVENTIONS.md).
+# Risk: safe (runs immediately) | confirm ("Shall I proceed, sir?")
+#       | pin (spoken 4-digit PIN) | blocked (refused).
+#
+# LOHITH: every capability below = ONE n8n workflow + uncommenting its block.
+# Webhook paths come from each Workflow's Webhook node; auth/secret/curl test in
+# docs/N8N-SETUP.md. Each workflow receives {"utterance": "<what you said>"}.
+# Risk policy: reading/finding/drafting = safe · anything that SENDS or posts
+# on your behalf = confirm · phone calls in your voice/name = pin.
+#
+# tools:
+#   - name: content_pipeline
+#     description: "runs the content pipeline for a new reel"      # router + selector read this
+#     adapter: adapters.n8n:run
+#     webhook_path: /webhook/TODO
+#     risk: confirm
+#   - name: review_request
+#     description: "sends a review request to a client"
+#     adapter: adapters.n8n:run
+#     webhook_path: /webhook/TODO
+#     risk: confirm
+#   - name: lead_followup
+#     description: "kicks off the AI follow-up sequence for new leads"
+#     adapter: adapters.n8n:run
+#     webhook_path: /webhook/TODO
+#     risk: confirm
+#   - name: booking_reminders
+#     description: "sends today's BookYourSlot booking reminders"
+#     adapter: adapters.n8n:run
+#     webhook_path: /webhook/TODO
+#     risk: confirm
+#   - name: morning_report
+#     description: "reads today's bookings and leads report"
+#     adapter: adapters.n8n:run
+#     webhook_path: /webhook/TODO
+#     risk: safe
+#
+# Assistant capabilities (added 2026-08-11, Lohith's ask — job search, leads,
+# drafts, calls). Same pattern; n8n holds every credential (job boards, email,
+# telephony) — nothing lands on this Mac:
+#   - name: job_search
+#     description: "searches job boards for roles matching sir's profile and shortlists the best"
+#     adapter: adapters.n8n:run
+#     webhook_path: /webhook/TODO
+#     risk: safe
+#   - name: lead_finder
+#     description: "finds new prospect leads with contact details for the business"
+#     adapter: adapters.n8n:run
+#     webhook_path: /webhook/TODO
+#     risk: safe
+#   - name: draft_replies
+#     description: "prepares draft responses to pending emails and messages for sir's review; drafts only, sends nothing"
+#     adapter: adapters.n8n:run
+#     webhook_path: /webhook/TODO
+#     risk: safe
+#   - name: send_outreach
+#     description: "sends the approved outreach or reply drafts on sir's behalf"
+#     adapter: adapters.n8n:run
+#     webhook_path: /webhook/TODO
+#     risk: confirm
+#   - name: make_call
+#     description: "places a phone call on sir's behalf using the AI voice agent"
+#     adapter: adapters.n8n:run
+#     webhook_path: /webhook/TODO
+#     risk: pin
+tools:
+  # n8n capabilities (wired 2026-08-15 from the live workflow list; base URL =
+  # tailnet n8n). Each needs its workflow ACTIVATED in the n8n editor to answer.
+  - name: job_search
+    description: "runs the job engine: searches job boards and scores/tailors matching roles for sir"
+    adapter: adapters.n8n:run
+    webhook_path: /webhook/job-run
+    risk: confirm
+  - name: review_draft
+    description: "drafts a reply to a customer review for sir's approval; drafts only, sends nothing"
+    adapter: adapters.n8n:run
+    webhook_path: /webhook/review-in
+    risk: safe
+  - name: lead_intake
+    description: "kicks off speed-to-lead: instant response sequence for a new lead"
+    adapter: adapters.n8n:run
+    webhook_path: /webhook/lead-intake
+    risk: confirm
+  - name: vendor_report
+    description: "runs the vendor data report and returns the numbers"
+    adapter: adapters.n8n:run
+    webhook_path: /webhook/run-vendor-report
+    risk: safe
+  - name: maintenance_request
+    description: "files a property maintenance request for triage and dispatch"
+    adapter: adapters.n8n:run
+    webhook_path: /webhook/maintenance-request
+    risk: confirm
+
+  # Phase D2 — local capabilities, live today (no credentials needed):
+  - name: weather
+    description: "tells the current weather, temperature, rain chances and today's forecast outside"
+    adapter: adapters.weather:report
+    risk: safe
+  - name: reminder
+    description: "sets a personal reminder or note-to-self when sir says 'remind me to ...'"
+    adapter: integrations.reminders:remind
+    risk: safe
+  - name: calendar_today
+    description: "reads today's calendar, schedule and upcoming events"
+    adapter: adapters.calendar:today_summary
+    risk: safe
+  - name: calendar_event
+    description: "creates a calendar event; books time, a meeting or appointment on sir's calendar"
+    adapter: adapters.calendar:create_from_speech
+    risk: confirm
+  - name: metrics_report
+    description: "reads business metrics from the dashboard: instagram reels, bookings, revenue and MRR, leads, workflow health"
+    adapter: integrations.metrics_voice:report
+    risk: safe
+  - name: open_apps
+    description: "opens sir's morning workspace — his apps and browser tabs (Instagram, GitHub, email, the Friday dashboard); say 'open my apps'. NOT for playing music"
+    adapter: adapters.apps:launch
+    risk: safe
+  - name: spotify_play
+    description: "controls Spotify music playback: play or resume songs, pause, skip/next, previous track, or what's playing now"
+    adapter: adapters.spotify:control
+    risk: safe
+  - name: make_call
+    description: "places a real phone call and speaks to someone on sir's behalf; dials a number and talks for him"
+    adapter: adapters.telephony:call
+    risk: pin

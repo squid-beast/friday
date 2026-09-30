@@ -1,0 +1,24 @@
+# jarvis-life-os · docker-compose.yml — livekit only, bound to 127.0.0.1.
+# Console mode (`make voice`) needs no docker; `make run` (dev mode) needs livekit.
+# Chroma runs embedded in-process (data/chroma) since Phase 2 — no server.
+services:
+  livekit:
+    image: livekit/livekit-server:latest
+    # --node-ip: the ICE candidate the phone dials for media. Default localhost =
+    # local-only; set LIVEKIT_NODE_IP to the Mac's tailscale IP for Phase 7.6.
+    command: --dev --bind 0.0.0.0 --node-ip ${LIVEKIT_NODE_IP:-127.0.0.1}
+    environment:
+      LIVEKIT_KEYS: "devkey: ${LIVEKIT_API_SECRET:-secret}"
+    ports:
+      # Loopback ALWAYS bound: tailscale serve (wss :8443) and the voice worker
+      # both dial 127.0.0.1. LIVEKIT_BIND_IP=<tailscale ip> ADDS the tailnet
+      # binding for direct phone media — never 0.0.0.0. (With BIND_IP unset the
+      # pairs collapse to identical loopback mappings, which docker tolerates.)
+      - "127.0.0.1:7880:7880"
+      - "127.0.0.1:7881:7881"
+      - "127.0.0.1:7882:7882/udp"
+      - "${LIVEKIT_BIND_IP:-127.0.0.1}:7880:7880"
+      - "${LIVEKIT_BIND_IP:-127.0.0.1}:7881:7881"
+      - "${LIVEKIT_BIND_IP:-127.0.0.1}:7882:7882/udp"
+    restart: unless-stopped
+

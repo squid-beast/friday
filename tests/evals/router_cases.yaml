@@ -1,0 +1,94 @@
+# Canned router eval set. >= 30 cases since Phase 6. PASS >= 90%.
+# Phase 2: 20. Phase 4: +2 audit queries. Phase 5: +3 browser tasks. Phase 6: +5 mixed.
+# Any router/prompt edit updates this file in the same session.
+cases:
+  # chat — banter, general questions, remember-commands
+  - utterance: "good morning"
+    expect: chat
+  - utterance: "what time is it?"
+    expect: chat
+  - utterance: "remember that my gym locker code is 4242"
+    expect: chat
+  - utterance: "tell me a joke"
+    expect: chat
+  - utterance: "what do you think of my schedule today?"
+    expect: chat
+  # vault — sir's own notes/knowledge + note capture
+  - utterance: "what did I quote the Receivly client?"
+    expect: vault
+  - utterance: "what's in my notes about BookYourSlot pricing?"
+    expect: vault
+  - utterance: "take a note: follow up with the dentist lead on Friday"
+    expect: vault
+  - utterance: "what were my content ideas for Instagram this week?"
+    expect: vault
+  - utterance: "what does my business overview say about the voice agents product?"
+    expect: vault
+  # ops — business workflows/automations
+  - utterance: "run my content pipeline"
+    expect: ops
+  - utterance: "trigger the review request workflow for the new client"
+    expect: ops
+  - utterance: "kick off the follow-up automation"
+    expect: ops
+  - utterance: "send out the booking reminders"
+    expect: ops
+  - utterance: "what did you do today?"
+    expect: ops
+  - utterance: "did you run anything this morning?"
+    expect: ops
+  - utterance: "open my apps"
+    expect: ops
+  - utterance: "play some music on Spotify"
+    expect: ops
+  - utterance: "call the dentist and reschedule my appointment"
+    expect: ops
+  # vision — camera (physical world) or browser (web hands)
+  - utterance: "what am I holding?"
+    expect: vision
+  - utterance: "look at this label and tell me what's in it"
+    expect: vision
+  - utterance: "can you see what's on my desk?"
+    expect: vision
+  - utterance: "see me"
+    expect: vision
+  - utterance: "look at me"
+    expect: vision
+  - utterance: "can you see this?"
+    expect: vision
+  - utterance: "go to the BookYourSlot site and check tomorrow's openings"
+    expect: vision
+  - utterance: "open the dentist's website and fill out the contact form"
+    expect: vision
+  - utterance: "search the web for reviews of that espresso machine and read me the verdict"
+    expect: vision
+  # recall — things seen on screen earlier
+  - utterance: "what was that page I saw yesterday about pricing?"
+    expect: recall
+  - utterance: "find that GitHub repo I was looking at this morning"
+    expect: recall
+  - utterance: "what was on my screen an hour ago?"
+    expect: recall
+  # Phase 6 additions — one per tricky boundary
+  - utterance: "remember I parked on level 3 at the airport garage"
+    expect: chat
+  - utterance: "how do I say good morning in Telugu?"
+    expect: chat
+  - utterance: "add to my inbox: reel idea comparing before and after storefronts"
+    expect: vault
+  - utterance: "run the morning report"
+    expect: ops
+  - utterance: "pull up that article about pricing psychology I had open last night"
+    expect: recall
+  # Phase D2 — calendar + spoken metrics land as ops tools
+  - utterance: "what's on my calendar today?"
+    expect: ops
+  - utterance: "book a meeting with the dentist tomorrow at 3pm"
+    expect: ops
+  - utterance: "how did the reels do this week?"
+    expect: ops
+  # Weather sense (adapters/weather.py, added 2026-08-19)
+  - utterance: "what's the weather like outside?"
+    expect: ops
+  - utterance: "will it rain today, do I need an umbrella?"
+    expect: ops

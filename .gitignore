@@ -1,0 +1,25 @@
+# Secrets and local env
+.env
+.env.*
+!.env.example
+
+# Runtime state
+data/
+
+# Python
+.venv/
+.pytest_cache/
+.ruff_cache/
+.uv-cache/
+__pycache__/
+*.py[cod]
+
+# Frontend build output
+ui/node_modules/
+ui/.svelte-kit/
+ui/build/
+
+# Editors and OS noise
+.DS_Store
+.idea/
+.vscode/

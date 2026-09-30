@@ -1,0 +1,20 @@
+{
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          { "type": "command", "command": "grep -A2 '## Next step' memory-bank/PROGRESS.md || true" },
+          { "type": "command", "command": "uv run --quiet python -m scripts.healthcheck --quick || true" }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Write|Edit",
+        "hooks": [
+          { "type": "command", "command": "command -v ruff >/dev/null && ruff check --fix --quiet . || true" }
+        ]
+      }
+    ]
+  }
+}

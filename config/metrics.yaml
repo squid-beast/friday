@@ -1,0 +1,12 @@
+# Metric sources — n8n webhooks that RETURN metrics as JSON rows:
+#   [{"platform": "instagram", "metric": "reel_views_7d", "value": 12345, "note": ""}, ...]
+# n8n holds the platform credentials; the Mac only pulls. Adding a platform =
+# one n8n workflow + one line here. Steps: docs/DASHBOARD.md.
+#
+# LOHITH: uncomment + fill as you build each metrics workflow in n8n:
+# metric_webhooks:
+#   - /webhook/metrics-instagram      # reel views, reach, follows
+#   - /webhook/metrics-bookyourslot   # bookings, revenue, MRR
+#   - /webhook/metrics-leads          # new / contacted / converted
+#   - /webhook/metrics-n8n-health     # workflow runs + failures
+metric_webhooks: []
