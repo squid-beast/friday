@@ -19,6 +19,7 @@ dependencies = [
     "browser-use>=0.13.7",
     "moondream>=2.0.1",
     "pyobjc-framework-eventkit>=12.1",
+    "livekit-plugins-openai==1.5.16",
 ]
 
 [dependency-groups]

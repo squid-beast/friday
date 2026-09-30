@@ -21,7 +21,16 @@ class Settings(BaseSettings):
     stand_down_phrase_text: str = "Stand Down"
 
     # LLM — PLAN §6's `claude-*-latest` aliases don't exist; these are real model IDs.
+    # llm_provider: anthropic (default) | openai | openrouter | gemini | compatible
+    # (compatible = any OpenAI-compatible server at llm_base_url, e.g. Ollama/vLLM).
+    # model_smart/fast are provider-specific ids; Claude ids on another provider fall
+    # back to that provider's defaults (adapters/llm_openai.py).
+    llm_provider: str = "anthropic"
     anthropic_api_key: str = ""
+    openai_api_key: str = ""
+    google_api_key: str = ""
+    openrouter_api_key: str = ""
+    llm_base_url: str = ""  # override/required base URL for OpenAI-compatible providers
     model_smart: str = "claude-sonnet-5"
     model_fast: str = "claude-haiku-4-5"
 

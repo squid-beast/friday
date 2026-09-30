@@ -28,7 +28,7 @@ def _fresh(monkeypatch: pytest.MonkeyPatch):
     ):
         monkeypatch.setenv(var, val)
     get_settings.cache_clear()
-    monkeypatch.setattr(llm_mod, "_client", None)
+    monkeypatch.setattr(llm_mod, "_clients", {})
     yield
     get_settings.cache_clear()
 

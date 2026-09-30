@@ -17,7 +17,9 @@ import httpx
 from config.settings import get_settings
 from config.tools import load_tools
 
-_KEY_FIELDS = ("anthropic_api_key", "deepgram_api_key", "cartesia_api_key")
+_VOICE_KEYS = ("deepgram_api_key", "cartesia_api_key")
+_LLM_KEYS = {"anthropic": "anthropic_api_key", "openai": "openai_api_key",
+             "openrouter": "openrouter_api_key", "gemini": "google_api_key"}
 _HTTP_TIMEOUT_S = 5.0
 _PHONE_VOICE_AGENT = Path.home() / "Library/LaunchAgents/com.friday.livekit.plist"
 
@@ -32,7 +34,9 @@ def port_open(host: str, port: int, timeout: float = 0.5) -> bool:
 
 def quick() -> list[str]:
     settings = get_settings()
-    warns = [f"WARN: {f.upper()} not set (.env)" for f in _KEY_FIELDS if not getattr(settings, f)]
+    llm_key = _LLM_KEYS.get(settings.llm_provider.strip().lower())  # compatible: optional
+    keys = ((llm_key,) if llm_key else ()) + _VOICE_KEYS
+    warns = [f"WARN: {f.upper()} not set (.env)" for f in keys if not getattr(settings, f)]
     if not settings.tts_voice_id:
         warns.append("WARN: TTS_VOICE_ID not set — Cartesia default voice will be used")
     if settings.wake_require_verifier and not settings.wake_verifier_path:
@@ -43,10 +47,11 @@ def quick() -> list[str]:
     return warns
 
 
-async def check_anthropic() -> None:
+async def check_llm() -> None:
+    """A real one-word completion on the ACTIVE provider (LLM_PROVIDER)."""
     from adapters.llm import think
 
-    await think("Reply with the single word: pong", fast=True)
+    await think("Reply with the single word: pong", fast=True, max_tokens=8)
 
 
 async def check_deepgram() -> None:
@@ -134,7 +139,7 @@ DARK_BY_DESIGN = ("INFO: dark by design — screen recall (screenpipe) + camera 
                   " phone voice is on demand (`make phone-voice`)")
 
 CHECKS: dict[str, Callable[[], Awaitable[None]]] = {
-    "anthropic": check_anthropic,
+    "llm": check_llm,
     "deepgram": check_deepgram,
     "cartesia": check_cartesia,
     "n8n": check_n8n,

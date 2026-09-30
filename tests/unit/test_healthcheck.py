@@ -66,11 +66,11 @@ def test_full_all_green(monkeypatch: pytest.MonkeyPatch, capsys) -> None:
 def test_full_failure_exits_one_with_reason(
     monkeypatch: pytest.MonkeyPatch, capsys
 ) -> None:
-    monkeypatch.setitem(hc.CHECKS, "anthropic", _boom)
+    monkeypatch.setitem(hc.CHECKS, "llm", _boom)
     for name in ("deepgram", "cartesia"):
         monkeypatch.setitem(hc.CHECKS, name, _ok)
     assert hc.main([]) == 1
-    assert "FAIL: anthropic: 401 unauthorized" in capsys.readouterr().out
+    assert "FAIL: llm: 401 unauthorized" in capsys.readouterr().out
 
 
 def test_quick_invalid_env_value_still_exits_zero(
@@ -143,3 +143,13 @@ def test_quick_warns_when_strict_voice_lock_is_missing_model(
     monkeypatch.setattr(hc, "port_open", lambda *a, **k: True)
     assert hc.main(["--quick"]) == 0
     assert "strict owner-voice wake is on" in capsys.readouterr().out
+
+
+def test_quick_checks_the_active_providers_key(monkeypatch: pytest.MonkeyPatch, capsys) -> None:
+    monkeypatch.setenv("LLM_PROVIDER", "openai")
+    monkeypatch.setenv("OPENAI_API_KEY", "")
+    get_settings.cache_clear()
+    monkeypatch.setattr(hc, "port_open", lambda *a, **k: True)
+    assert hc.main(["--quick"]) == 0
+    out = capsys.readouterr().out
+    assert "WARN: OPENAI_API_KEY not set" in out and "ANTHROPIC_API_KEY" not in out
