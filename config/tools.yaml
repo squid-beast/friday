@@ -47,3 +47,17 @@ tools:
     description: "opens sir's notes vault in the Obsidian app, or one note by name ('open the note called ...'); NOT for answering questions from notes"
     adapter: adapters.vault:open_tool
     risk: safe
+  # Phase 4 buddy actions (2026-09-30)
+  - name: today_plan
+    description: "adds an item to sir's plan for today ('add call the bank to today's plan') or reads today's plan back; kept in his Obsidian daily note"
+    adapter: adapters.vault_plan:plan
+    risk: safe
+  - name: open_and_search
+    description: "opens ONE named Mac app ('open Slack', 'launch Xcode') or searches the web, YouTube, GitHub, Amazon, Maps or Wikipedia for something ('search YouTube for lo-fi', 'google flights to Austin'); NOT for sir's notes or his morning apps"
+    adapter: adapters.mac_actions:open_or_search
+    risk: safe
+  - name: send_summary
+    description: "sends sir a summary of his day (calendar, plan, reminders, job search, what Friday did) to his Telegram"
+    adapter: integrations.day_summary:send
+    webhook_path: /webhook/friday-summary
+    risk: confirm

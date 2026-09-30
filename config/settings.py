@@ -74,6 +74,7 @@ class Settings(BaseSettings):
     n8n_base_url: str = ""
     n8n_webhook_secret: str = ""
     n8n_api_key: str = ""  # public REST API (executions read for the HUD)
+    telegram_chat_id: str = ""  # where the Friday summary workflow sends (his own chat)
 
     # Vision (Phase 5)
     screenpipe_url: str = "http://127.0.0.1:3030"
@@ -108,6 +109,8 @@ class Settings(BaseSettings):
     # Wake routine — on the FIRST wake of the day, open sir's apps + tabs (a
     # morning launch). Also fired anytime by the "open my apps" tool. Mac-only
     # (subprocess `open`), fully offline. Blank list / disabled = no-op.
+    # Proactive check-ins: launchd com.friday.checkin nudges at 09:00/13:00/19:00
+    proactive_checkins: bool = True
     wake_apps_enabled: bool = True
     wake_launch_spotify: bool = True
     wake_urls: str = (

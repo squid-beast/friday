@@ -78,8 +78,8 @@ async def check_cartesia() -> None:
 
 
 async def check_n8n() -> None:
-    """Reachable + authorised (REST API with the key), and every registered
-    adapters.n8n tool has an ACTIVE workflow serving its path as POST. Read-only:
+    """Reachable + authorised (REST API with the key), and every registered tool
+    with a webhook_path has an ACTIVE workflow serving it as POST. Read-only:
     business workflows are listed, never touched."""
     settings = get_settings()
     if not settings.n8n_base_url:
@@ -101,8 +101,8 @@ async def check_n8n() -> None:
             if not cursor:
                 break
     served = _active_post_hooks(workflows)
-    missing = [t.name for t in load_tools() if t.adapter.startswith("adapters.n8n")
-               and _hook_key(t.webhook_path) not in served]
+    missing = [t.name for t in load_tools()  # every tool that calls an n8n webhook
+               if t.webhook_path and _hook_key(t.webhook_path) not in served]
     if missing:
         raise ValueError(f"no active POST workflow for tool(s): {', '.join(missing)}")
 

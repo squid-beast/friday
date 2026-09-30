@@ -41,6 +41,7 @@ def test_status_flags_arm_from_config(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setenv("WAKE_VERIFIER_PATH", "voice/wakeword/owner.joblib")
     monkeypatch.setenv("WAKE_REQUIRE_VERIFIER", "true")
     get_settings.cache_clear()
+    monkeypatch.setattr("config.tools.load_tools", lambda: [])  # no Friday n8n tool
     data = api.status({})
     systems = data["systems"]
     assert systems["brain"] is True

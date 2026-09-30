@@ -86,4 +86,5 @@ def test_both_tools_are_registered_safe() -> None:
     assert tools["jobs_status"].adapter == "integrations.jobs_voice:status"
     assert tools["open_obsidian"].adapter == "adapters.vault:open_tool"
     assert tools["jobs_status"].risk == tools["open_obsidian"].risk == "safe"
-    assert not [t for t in tools.values() if t.adapter.startswith("adapters.n8n")]
+    # the only n8n-backed tool is the Friday-owned summary workflow
+    assert [t.name for t in tools.values() if t.webhook_path] == ["send_summary"]

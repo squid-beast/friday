@@ -159,7 +159,8 @@ async def entrypoint(ctx: agents.JobContext) -> None:
     greeting = brief or "At your service, sir."
     await session.say(styler.line(greeting, "greeting"))  # greet FIRST — fast to first word
     await asyncio.to_thread(launch_apps, on_wake=True)  # only if WAKE_APPS_ENABLED
-    checkin = await checkin_line()  # then the warm, caring question (its own utterance)
+    followup = pending_question.take_for_wake()  # a proactive nudge sent while away?
+    checkin = f"Earlier I wondered — {followup}" if followup else await checkin_line()
     if checkin:
         pending_question.mark(checkin)  # so his answer is always remembered
         await session.say(styler.line(checkin, "checkin"))

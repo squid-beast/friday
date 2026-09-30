@@ -17,11 +17,12 @@ _ON_DEMAND = sorted((_LAUNCHD / "on-demand").glob("*/*.plist"))  # groups, never
 
 def test_all_agents_present() -> None:
     assert [p.name for p in _PLISTS] == [
+        "com.friday.checkin.plist",
         "com.friday.dashboard.plist",
         "com.friday.killswitch.plist",
         "com.friday.logrotate.plist",
         "com.friday.metrics.plist",
-    ]  # screenpipe + moondream removed; phone voice moved to on-demand (2026-09-29)
+    ]  # screenpipe+moondream removed, phone voice on-demand (09-29); checkin added (09-30)
     assert [p.name for p in _ON_DEMAND] == [
         "com.friday.livekit.plist", "com.friday.voiceworker.plist"]
 
@@ -31,7 +32,8 @@ def test_plist_parses_with_label_and_program(path: Path) -> None:
     data = plistlib.loads(path.read_bytes())
     assert data["Label"] == path.stem
     assert data["ProgramArguments"], "empty ProgramArguments would be a silent no-op"
-    assert data["RunAtLoad"] is True
+    # scheduled nudges must not fire on every login/reinstall; services + sweeps start at load
+    assert data["RunAtLoad"] is ("StartCalendarInterval" not in data)
 
 
 @pytest.mark.parametrize(
@@ -73,3 +75,10 @@ def test_killswitch_runs_healthcheck_first() -> None:
 def test_installer_script_parses() -> None:
     script = Path(__file__).resolve().parents[2] / "scripts" / "install_launchd.sh"
     subprocess.run(["bash", "-n", str(script)], check=True, timeout=30)
+
+
+def test_proactive_checkin_is_a_calendar_nudge_not_a_daemon() -> None:
+    data = plistlib.loads((_LAUNCHD / "com.friday.checkin.plist").read_bytes())
+    assert [(t["Hour"], t["Minute"]) for t in data["StartCalendarInterval"]] == [
+        (9, 0), (13, 0), (19, 0)]
+    assert data["RunAtLoad"] is False and "KeepAlive" not in data

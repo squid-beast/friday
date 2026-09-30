@@ -13,7 +13,7 @@ from pathlib import Path
 import pytest
 
 _SCRIPT = Path(__file__).resolve().parents[2] / "scripts" / "install_launchd.sh"
-_CORE = {"com.friday.dashboard.plist", "com.friday.killswitch.plist",
+_CORE = {"com.friday.checkin.plist", "com.friday.dashboard.plist", "com.friday.killswitch.plist",
          "com.friday.logrotate.plist", "com.friday.metrics.plist"}
 _PHONE = {"com.friday.livekit.plist", "com.friday.voiceworker.plist"}
 

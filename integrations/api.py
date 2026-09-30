@@ -124,7 +124,8 @@ def _phone_voice_installed() -> bool:
 def status(_body: dict) -> dict:
     """Everything at a glance for the board: what's armed, what's queued, what's
     next. Flags are TRUE only when the thing can actually run: n8n ops needs a
-    registered Friday n8n tool (not just a URL); phone voice needs LiveKit's port."""
+    registered Friday n8n tool (not just a URL; `make doctor` verifies it's ACTIVE);
+    phone voice needs the worker installed AND LiveKit's port."""
     from client import control
     from config.settings import get_settings
     from config.tools import load_tools
@@ -149,8 +150,7 @@ def status(_body: dict) -> dict:
         "systems": {
             "brain": bool(s.anthropic_api_key),
             "voice keys": bool(s.deepgram_api_key and s.cartesia_api_key),
-            "n8n ops": bool(s.n8n_base_url) and any(
-                t.adapter.startswith("adapters.n8n") for t in load_tools()),
+            "n8n ops": bool(s.n8n_base_url) and any(t.webhook_path for t in load_tools()),
             "phone voice": bool(s.voice_ws_url) and _phone_voice_installed()
             and _port_open(7880),
             "pin": bool(s.friday_pin),

@@ -93,3 +93,12 @@ cases:
     expect: recall
   - utterance: "what was on my screen an hour ago?"
     expect: recall
+  # 2026-09-30 — buddy actions
+  - utterance: "add call the bank to today's plan"
+    expect: ops
+  - utterance: "open Slack"
+    expect: ops
+  - utterance: "search YouTube for lo-fi beats"
+    expect: ops
+  - utterance: "send me a summary of my day"
+    expect: ops

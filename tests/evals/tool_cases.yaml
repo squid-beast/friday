@@ -43,6 +43,20 @@ cases:
     expect: open_obsidian
   - utterance: "open the note called weekly review"
     expect: open_obsidian
+  - utterance: "add call the bank to today's plan"
+    expect: today_plan
+  - utterance: "what's on my plan for today?"
+    expect: today_plan
+  - utterance: "open Slack"
+    expect: open_and_search
+  - utterance: "search YouTube for lo-fi beats"
+    expect: open_and_search
+  - utterance: "google flights to Austin"
+    expect: open_and_search
+  - utterance: "send me a summary of my day"
+    expect: send_summary
+  - utterance: "text me today's summary on Telegram"
+    expect: send_summary
   # no tool fits — must select nothing (unlinked business tools stay unlinked)
   - utterance: "run lead intake for the new client"
     expect: ""
