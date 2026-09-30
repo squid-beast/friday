@@ -39,6 +39,14 @@ class Settings(BaseSettings):
     cartesia_api_key: str = ""
     tts_voice_id: str = ""
     elevenlabs_api_key: str = ""  # optional fallback, unused in Phase 1
+    # Voice out: tts_provider = cartesia (default) | openai | fishaudio
+    tts_provider: str = "cartesia"
+    openai_tts_model: str = "gpt-4o-mini-tts"  # takes per-turn tone instructions
+    openai_tts_voice: str = "coral"
+    fish_api_key: str = ""
+    fish_voice_id: str = ""  # the cloned target voice (Fish Audio model/reference id)
+    fish_model: str = "s1"  # S1 renders inline emotion tags like "(worried)"
+    fish_emotion_enabled: bool = True
 
     # LiveKit (local)
     livekit_url: str = "ws://127.0.0.1:7880"
@@ -95,6 +103,7 @@ class Settings(BaseSettings):
     # remain as kill paths. Set e.g. "cmd+alt+j" (⌥⌘J) to re-enable.
     hotkey: str = ""
     stand_down_file: str = "control/stand_down"  # agent touches it; daemon acts on it
+    pending_question_file: str = "control/pending_question.json"  # last check-in asked
 
     # Wake routine — on the FIRST wake of the day, open sir's apps + tabs (a
     # morning launch). Also fired anytime by the "open my apps" tool. Mac-only
@@ -150,6 +159,7 @@ class Settings(BaseSettings):
             "gesture_control_file",
             "screen_off_file",
             "stand_down_file",
+            "pending_question_file",
             "logs_dir",
             "content_db_path",
             "metrics_db_path",

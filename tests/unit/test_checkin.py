@@ -11,9 +11,14 @@ def _audit(n_wakes):
 
 
 def test_topic_rotates_by_wake_count():
-    seen = [next_topic(_audit(i)) for i in range(len(_ORDER) + 1)]
-    assert seen[: len(_ORDER)] == _ORDER  # a different concern each wake, in order
+    # the daemon logs "wake" BEFORE the agent runs, so the Nth wake sees N wake rows
+    seen = [next_topic(_audit(i + 1)) for i in range(len(_ORDER) + 1)]
+    assert seen[: len(_ORDER)] == _ORDER  # first wake of the day asks about health
     assert seen[len(_ORDER)] == _ORDER[0]  # wraps around the day
+
+
+def test_no_wake_row_yet_still_starts_with_health():
+    assert next_topic(_audit(0)) == _ORDER[0]  # e.g. phone voice (no daemon wake row)
 
 
 def test_topic_defaults_when_audit_unreadable():

@@ -11,6 +11,7 @@ Run:  uv run python -m voice.agent console   # local mic/speakers, no server
 """
 
 import asyncio
+import contextlib
 import time
 from collections.abc import AsyncIterator
 from pathlib import Path
@@ -23,11 +24,13 @@ from adapters.apps import launch_apps
 from adapters.llm import get_llm
 from adapters.stt import get_stt, get_vad
 from adapters.tts import get_tts
+from brain import mood_sense, pending_question
 from brain.brief import morning_brief
 from brain.checkin import checkin_line
 from brain.graph import get_brain
 from client.local_intents import Intent, cut, match
 from config.settings import get_settings
+from voice.styling import Styler
 
 _PERSONA_PATH = Path(__file__).resolve().parent.parent / "config" / "persona.md"
 UNARMED_LINE = "That system isn't armed yet, sir."
@@ -70,9 +73,12 @@ def _last_user_text(chat_ctx: Any) -> str:
 class FridayAgent(agents.Agent):
     """Voice pipeline agent whose 'LLM' is the whole brain graph."""
 
-    def __init__(self, brain: Any, thread_id: str) -> None:
+    def __init__(self, brain: Any, thread_id: str, *, styler: Styler | None = None,
+                 sense=mood_sense.turn_update) -> None:
         super().__init__(instructions=build_instructions())
         self._brain = brain
+        self.styler = styler or Styler()  # mood -> voice, safety-gated (voice/emotion.py)
+        self._sense = sense  # folds this session's audit events into the mood each turn
         self._config = {"configurable": {"thread_id": thread_id}}
         self.muted = False
         self.last_activity = time.monotonic()
@@ -86,19 +92,20 @@ class FridayAgent(agents.Agent):
             return
         self.last_activity = time.monotonic()
         intent = match(utterance)  # offline check BEFORE any graph/LLM dispatch
+        say = self.styler.line
         if intent is Intent.STAND_DOWN:
-            yield "Standing down, sir."
+            yield say("Standing down, sir.", "kill")  # flat, tag-free: never styled
             touch_stand_down()
             return
         if intent in (Intent.CAMERA_OFF, Intent.SCREEN_OFF):
-            yield cut(intent)  # offline: flag + pkill, no graph, no network
+            yield say(cut(intent), "cut")  # offline: flag + pkill, no graph, no network
             return
         if intent is Intent.MUTE:
             self.muted = True
             return
         if intent is Intent.RESUME:
             self.muted = False
-            yield cut(intent)  # clears capture flags; speaks "At your service, sir."
+            yield say(cut(intent), "cut")  # clears capture flags; "At your service, sir."
             return
         if self.muted:
             return  # listening silently — no speech, no tokens (and no gate resume)
@@ -107,6 +114,8 @@ class FridayAgent(agents.Agent):
             payload: Any = Command(resume=utterance)  # the answer to "Shall I proceed, sir?"
         else:
             payload = {"messages": [{"role": "user", "content": utterance}]}
+        with contextlib.suppress(Exception):  # mood is color, never a blocker
+            await asyncio.to_thread(self._sense)
         config = {"configurable": {**self._config["configurable"], "stream_tokens": True}}
         streamed = False
         final_reply: str | None = None
@@ -115,8 +124,8 @@ class FridayAgent(agents.Agent):
             payload, config, stream_mode=["custom", "updates"]
         ):
             if mode == "custom" and isinstance(chunk, str):
-                streamed = True
-                yield chunk  # a reply token — spoken as it arrives, not at the end
+                yield chunk if streamed else say(chunk, "reply")  # style the FIRST token only
+                streamed = True  # a reply token — spoken as it arrives, not at the end
             elif mode == "updates":
                 if "__interrupt__" in chunk:  # confirm gate parked a question
                     interrupt_q = chunk["__interrupt__"][0].value["question"]
@@ -126,9 +135,9 @@ class FridayAgent(agents.Agent):
                             final_reply = out["reply"]
         if interrupt_q is not None:
             self.pending_confirm = True
-            yield interrupt_q
+            yield say(interrupt_q, "pin" if "PIN" in interrupt_q else "confirm")
         elif not streamed and final_reply is not None:
-            yield final_reply
+            yield say(final_reply, "reply")  # canned refusals/apologies are gated by text
 
 
 async def entrypoint(ctx: agents.JobContext) -> None:
@@ -140,15 +149,20 @@ async def entrypoint(ctx: agents.JobContext) -> None:
         llm=get_llm(),  # unused by llm_node; keeps pipeline internals happy
         tts=get_tts(),
     )
-    agent = FridayAgent(brain, thread_id=ctx.room.name or "local")
+    styler = Styler(tts=session.tts)
+    agent = FridayAgent(brain, thread_id=ctx.room.name or "local", styler=styler)
     await session.start(agent=agent, room=ctx.room)
     agent.watchdog = asyncio.create_task(silence_watchdog(agent))  # ref kept against GC
+    with contextlib.suppress(Exception):  # real signals -> mood before the first word
+        await mood_sense.refresh_at_wake()
     brief = await morning_brief()  # non-None only on the first wake of the day
-    await session.say(brief or "At your service, sir.")  # greet FIRST — fast to first word
+    greeting = brief or "At your service, sir."
+    await session.say(styler.line(greeting, "greeting"))  # greet FIRST — fast to first word
     await asyncio.to_thread(launch_apps, on_wake=True)  # only if WAKE_APPS_ENABLED
     checkin = await checkin_line()  # then the warm, caring question (its own utterance)
     if checkin:
-        await session.say(checkin)
+        pending_question.mark(checkin)  # so his answer is always remembered
+        await session.say(styler.line(checkin, "checkin"))
 
 
 if __name__ == "__main__":

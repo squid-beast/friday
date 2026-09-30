@@ -2,8 +2,8 @@
 
 The caring check-in: on every wake, after the greeting, Friday asks ONE warm
 question — rotating through sir's health, skills, whereabouts and what he's done
-— grounded in what he last said so it lands like family, not a form. His answer
-is remembered by the normal per-turn memory writer.
+— grounded in what he last said so it lands like family, not a form. The question
+is marked (brain/pending_question.py) so his answer is always remembered.
 """
 
 import logging
@@ -30,11 +30,12 @@ In ONE short, warm sentence — like caring family, not an interviewer — ask s
 
 
 def next_topic(audit_read=today) -> str:
+    """The daemon logs "wake" BEFORE this runs, so the Nth wake sees N rows."""
     try:
         n = sum(1 for e in audit_read() if e.kind == "wake")
     except Exception:
         n = 0
-    return _ORDER[n % len(_ORDER)]
+    return _ORDER[max(n - 1, 0) % len(_ORDER)]
 
 
 async def checkin_line(

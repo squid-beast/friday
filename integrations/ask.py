@@ -7,12 +7,14 @@ dedicated background event loop so the sync dashboard server can call it.
 """
 
 import asyncio
+import contextlib
 import threading
 from pathlib import Path
 from typing import Any
 
 from langgraph.types import Command
 
+from brain import mood_sense
 from brain.graph import get_brain
 from client.local_intents import Intent, cut, match
 from config.settings import get_settings
@@ -57,6 +59,8 @@ class BrainBridge:
                 return {"reply": "Text is already quiet, sir.", "pending": False}
             if self._brain is None:
                 self._brain = self._run(self._factory())
+            with contextlib.suppress(Exception):  # mood is color, never a blocker
+                mood_sense.turn_update()
             if self._pending_confirm:
                 self._pending_confirm = False
                 payload: Any = Command(resume=text)

@@ -31,8 +31,16 @@ LLM_APOLOGY = "Apologies, sir — my reasoning engine is unreachable."
 
 
 @lru_cache
-def persona() -> str:
+def _base_persona() -> str:
     return _PERSONA_PATH.read_text(encoding="utf-8")
+
+
+def persona() -> str:
+    """config/persona.md + ONE live mood line (brain/mood.py) — word choice only."""
+    from brain.mood_sense import current_line
+
+    line = current_line()
+    return f"{_base_persona()}\n\n{line}" if line else _base_persona()
 
 
 def transcript(messages: list[Message], limit: int = _HISTORY_MESSAGES) -> str:

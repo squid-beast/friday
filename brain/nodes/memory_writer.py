@@ -11,6 +11,7 @@ import re
 
 from adapters import memory as memory_adapter
 from adapters.llm import think as llm_think
+from brain import pending_question
 from brain.state import FridayState, last_user
 
 log = logging.getLogger(__name__)
@@ -25,7 +26,7 @@ _FACT_HINT = re.compile(
 )
 
 _PROMPT = """\
-Sir said: "{utterance}"
+{asked}Sir said: "{utterance}"
 
 List lasting personal facts worth remembering from this (preferences, people,
 numbers, codes, dates, decisions). One per line, each a standalone statement
@@ -38,16 +39,19 @@ async def memory_writer_node(
     state: FridayState, *, think=llm_think, remember=memory_adapter.remember
 ) -> dict:
     utterance = last_user(state.messages)
-    if utterance and _FACT_HINT.search(utterance):
-        task = asyncio.create_task(_extract_and_store(utterance, think=think, remember=remember))
+    asked = pending_question.take()  # answering a check-in? always worth remembering
+    if utterance and (asked or _FACT_HINT.search(utterance)):
+        task = asyncio.create_task(
+            _extract_and_store(utterance, think=think, remember=remember, asked=asked))
         _tasks.add(task)
         task.add_done_callback(_tasks.discard)
     return {}
 
 
-async def _extract_and_store(utterance: str, *, think, remember) -> None:
+async def _extract_and_store(utterance: str, *, think, remember, asked: str = "") -> None:
+    context = f'Friday asked: "{asked}"\n' if asked else ""
     try:
-        raw = await think(_PROMPT.format(utterance=utterance), fast=True)
+        raw = await think(_PROMPT.format(asked=context, utterance=utterance), fast=True)
         for line in raw.splitlines():
             fact = line.strip("-•* \t")
             if fact and fact.upper() != "NONE":

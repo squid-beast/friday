@@ -20,6 +20,7 @@ dependencies = [
     "moondream>=2.0.1",
     "pyobjc-framework-eventkit>=12.1",
     "livekit-plugins-openai==1.5.16",
+    "livekit-plugins-fishaudio==1.6.9",
 ]
 
 [dependency-groups]
