@@ -14,12 +14,10 @@ from pathlib import Path
 
 import httpx
 
+from config import providers
 from config.settings import get_settings
 from config.tools import load_tools
 
-_VOICE_KEYS = ("deepgram_api_key", "cartesia_api_key")
-_LLM_KEYS = {"anthropic": "anthropic_api_key", "openai": "openai_api_key",
-             "openrouter": "openrouter_api_key", "gemini": "google_api_key"}
 _HTTP_TIMEOUT_S = 5.0
 _PHONE_VOICE_AGENT = Path.home() / "Library/LaunchAgents/com.friday.livekit.plist"
 
@@ -34,10 +32,9 @@ def port_open(host: str, port: int, timeout: float = 0.5) -> bool:
 
 def quick() -> list[str]:
     settings = get_settings()
-    llm_key = _LLM_KEYS.get(settings.llm_provider.strip().lower())  # compatible: optional
-    keys = ((llm_key,) if llm_key else ()) + _VOICE_KEYS
-    warns = [f"WARN: {f.upper()} not set (.env)" for f in keys if not getattr(settings, f)]
-    if not settings.tts_voice_id:
+    needed = providers.llm_fields(settings) + providers.voice_fields(settings)  # ACTIVE ones
+    warns = [f"WARN: {f.upper()} not set (.env)" for f in providers.missing(settings, needed)]
+    if providers.tts_provider(settings) == "cartesia" and not settings.tts_voice_id:
         warns.append("WARN: TTS_VOICE_ID not set — Cartesia default voice will be used")
     if settings.wake_require_verifier and not settings.wake_verifier_path:
         warns.append("WARN: strict owner-voice wake is on, but WAKE_VERIFIER_PATH is missing")
@@ -74,6 +71,24 @@ async def check_cartesia() -> None:
             "https://api.cartesia.ai/voices",
             headers={"X-API-Key": key, "Cartesia-Version": "2024-06-10"},
         )
+        response.raise_for_status()
+
+
+async def check_tts() -> None:
+    """The ACTIVE voice (TTS_PROVIDER): Cartesia/OpenAI get a real authed request; Fish is
+    checked for key + cloned voice id (config only — no paid synthesis from the doctor)."""
+    settings = get_settings()
+    provider = providers.tts_provider(settings)
+    gaps = providers.missing(settings, providers.TTS_KEYS.get(provider, ("cartesia_api_key",)))
+    if gaps:
+        raise ValueError(f"{', '.join(g.upper() for g in gaps)} not set (TTS_PROVIDER={provider})")
+    if provider == "cartesia":
+        await check_cartesia()
+    elif provider == "openai":
+        async with httpx.AsyncClient(timeout=_HTTP_TIMEOUT_S) as client:
+            response = await client.get(
+                "https://api.openai.com/v1/models",
+                headers={"Authorization": f"Bearer {settings.openai_api_key}"})
         response.raise_for_status()
 
 
@@ -141,7 +156,7 @@ DARK_BY_DESIGN = ("INFO: dark by design — screen recall (screenpipe) + camera 
 CHECKS: dict[str, Callable[[], Awaitable[None]]] = {
     "llm": check_llm,
     "deepgram": check_deepgram,
-    "cartesia": check_cartesia,
+    "tts": check_tts,
     "n8n": check_n8n,
     "chroma": check_chroma,
 }

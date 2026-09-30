@@ -67,7 +67,7 @@ def test_full_failure_exits_one_with_reason(
     monkeypatch: pytest.MonkeyPatch, capsys
 ) -> None:
     monkeypatch.setitem(hc.CHECKS, "llm", _boom)
-    for name in ("deepgram", "cartesia"):
+    for name in ("deepgram", "tts"):
         monkeypatch.setitem(hc.CHECKS, name, _ok)
     assert hc.main([]) == 1
     assert "FAIL: llm: 401 unauthorized" in capsys.readouterr().out
@@ -153,3 +153,19 @@ def test_quick_checks_the_active_providers_key(monkeypatch: pytest.MonkeyPatch, 
     assert hc.main(["--quick"]) == 0
     out = capsys.readouterr().out
     assert "WARN: OPENAI_API_KEY not set" in out and "ANTHROPIC_API_KEY" not in out
+
+
+async def test_check_tts_follows_the_active_provider(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setenv("TTS_PROVIDER", "openai")
+    monkeypatch.setenv("OPENAI_API_KEY", "sk-t")
+    get_settings.cache_clear()
+    calls = _fake_http(monkeypatch, 200)
+    await hc.check_tts()
+    assert calls[0][0] == "https://api.openai.com/v1/models"
+    assert calls[0][1] == {"Authorization": "Bearer sk-t"}
+    monkeypatch.setenv("TTS_PROVIDER", "fishaudio")
+    monkeypatch.setenv("FISH_API_KEY", "f")
+    monkeypatch.setenv("FISH_VOICE_ID", "")
+    get_settings.cache_clear()
+    with pytest.raises(ValueError, match="FISH_VOICE_ID"):
+        await hc.check_tts()

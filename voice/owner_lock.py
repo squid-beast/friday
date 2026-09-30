@@ -15,16 +15,17 @@ from math import gcd
 
 import numpy as np
 
+from adapters import voiceprint
+
 log = logging.getLogger(__name__)
 
 SR = 16_000
 MIN_VOICED_S = 0.8  # less voice than this can't be judged reliably
 MAX_BUFFER_S = 15.0
-_FRAME = 320  # 20ms at 16kHz for the voiced-audio trim
-_RMS_FLOOR = 0.01
 REFUSALS = {
     "stranger": "I only take instructions from sir.",
-    "too_short": "I didn't catch enough of your voice, sir — once more, a little longer.",
+    "too_short": "I didn't catch enough of your voice, sir — once more, a little longer; "
+                 "'yes, go ahead' works.",
     "unavailable": "My voice lock can't verify you right now, sir, so I'm holding still.",
 }
 
@@ -66,7 +67,7 @@ class OwnerLock:
     def verdict(self, pcm: np.ndarray) -> str:
         if not self.armed:
             return "unlocked"
-        voiced = _voiced(pcm)
+        voiced = voiceprint.voiced(pcm)
         if len(voiced) < self._min_voiced:
             return "too_short"
         try:
@@ -80,20 +81,9 @@ class OwnerLock:
 
     @classmethod
     def from_settings(cls) -> "OwnerLock":
-        from adapters import voiceprint
         from config.settings import get_settings
 
         s = get_settings()
         return cls(armed=s.voice_lock_turns, threshold=s.voiceprint_threshold,
                    score=lambda pcm: voiceprint.score_if_ready(
                        pcm, s.voiceprint_path, s.voiceprint_model_path))
-
-
-def _voiced(pcm: np.ndarray) -> np.ndarray:
-    """Keep only 20ms frames with real energy (silence would dilute the embedding)."""
-    n = len(pcm) // _FRAME
-    if n == 0:
-        return np.zeros(0, np.float32)
-    frames = pcm[: n * _FRAME].reshape(n, _FRAME)
-    loud = np.sqrt((frames ** 2).mean(axis=1)) > _RMS_FLOOR
-    return frames[loud].reshape(-1)

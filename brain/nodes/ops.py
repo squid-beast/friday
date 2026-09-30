@@ -31,14 +31,17 @@ BLOCKED_LINE = "That workflow is blocked, sir. I won't be running it."
 ABORTED = "Very well, sir. Nothing was executed."
 NO_PIN_SET = "No PIN is configured, sir. That workflow stays locked."
 PIN_REFUSED = "That's not the code, sir. Nothing was executed."
+TOOL_FAILED = "I couldn't run {}, sir."  # voice/styling.py gates it by prefix: always flat
 _AUDIT_RE = re.compile(
     r"\bwhat (did you do|have you done)\b|\bdid you (run|do) anything\b", re.IGNORECASE
 )
 
 _SELECT_PROMPT = """\
 Sir asked: "{utterance}"
-Pick the ONE workflow that matches, from:
+Pick the ONE workflow that does exactly what he asked, from:
 {catalog}
+If none of them does it (a task no workflow covers), reply NONE — never pick a workflow
+just because it is the closest.
 Reply with exactly the workflow name, or NONE."""
 
 _SUMMARY_PROMPT = """\
@@ -134,7 +137,7 @@ async def ops_execute_node(
     except Exception:
         log.warning("tool %s failed", tool.name, exc_info=True)
         audit(tool.name, tool.webhook_path, "failed: unreachable/error", confirmed=True)
-        return {**assistant_reply(f"I couldn't run {tool.name}, sir."), "pending_tool": ""}
+        return {**assistant_reply(TOOL_FAILED.format(tool.name)), "pending_tool": ""}
     audit(tool.name, tool.webhook_path, result, confirmed=True)
     try:
         reply = (

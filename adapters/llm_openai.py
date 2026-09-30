@@ -24,7 +24,7 @@ _KEY_FIELDS = {
     "openai": "openai_api_key",
     "openrouter": "openrouter_api_key",
     "gemini": "google_api_key",
-    "compatible": "openai_api_key",  # optional for local servers
+    "compatible": "llm_api_key",  # its OWN optional key — never your OpenAI key
 }
 # Used when MODEL_SMART/FAST still hold Claude ids: flipping LLM_PROVIDER alone must work.
 _DEFAULT_MODELS = {  # (smart, fast)
@@ -40,7 +40,9 @@ def endpoint(provider: str) -> tuple[str | None, str]:
     if provider not in _BASE_URLS:
         raise ValueError(f"unknown LLM_PROVIDER '{provider}'")
     s = get_settings()
-    base = s.llm_base_url or _BASE_URLS[provider]
+    # LLM_BASE_URL belongs to `compatible` only — it must never silently redirect a cloud
+    # provider (and its key) to another server
+    base = s.llm_base_url if provider == "compatible" else _BASE_URLS[provider]
     key = getattr(s, _KEY_FIELDS[provider])
     if provider == "compatible":
         if not base:
@@ -56,8 +58,12 @@ def model_for(provider: str, *, fast: bool, override: str | None = None) -> str:
         return override
     s = get_settings()
     configured = s.model_fast if fast else s.model_smart
-    if configured.startswith("claude") and provider in _DEFAULT_MODELS:
-        return _DEFAULT_MODELS[provider][1 if fast else 0]
+    if configured.startswith("claude"):
+        if provider in _DEFAULT_MODELS:
+            return _DEFAULT_MODELS[provider][1 if fast else 0]
+        endpoint(provider)  # config errors (unknown provider, no base URL) are named first
+        raise ValueError("LLM_PROVIDER=compatible needs MODEL_SMART/MODEL_FAST set to "
+                         "your server's model ids (e.g. llama3.1:8b)")
     return configured
 
 

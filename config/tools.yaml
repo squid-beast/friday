@@ -20,7 +20,7 @@ tools:
     adapter: integrations.reminders:remind
     risk: safe
   - name: calendar_today
-    description: "reads today's calendar, schedule and upcoming events"
+    description: "reads today's calendar: meetings, appointments and scheduled events (NOT sir's own to-do plan)"
     adapter: adapters.calendar:today_summary
     risk: safe
   - name: calendar_event
@@ -49,7 +49,7 @@ tools:
     risk: safe
   # Phase 4 buddy actions (2026-09-30)
   - name: today_plan
-    description: "adds an item to sir's plan for today ('add call the bank to today's plan') or reads today's plan back; kept in his Obsidian daily note"
+    description: "sir's own to-do plan for today: adds an item ('add call the bank to today's plan') or reads back what's on his plan / to-do list; kept in his Obsidian daily note (NOT calendar events)"
     adapter: adapters.vault_plan:plan
     risk: safe
   - name: open_and_search

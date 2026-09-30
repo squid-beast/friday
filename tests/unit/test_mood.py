@@ -80,7 +80,7 @@ def test_disposition_is_one_word_choice_line() -> None:
 def test_audit_rows_move_the_mood_once() -> None:
     state = mood.MoodState()
     events = [_tool(10, "ok: done"), _tool(11, "failed: 500"),
-              Event(ts=12, kind="stand_down", detail="spoken")]
+              Event(ts=12, kind="stand_down", detail="spoken_kill")]
     mood.observe(state, events)
     assert state.cursor == 12 and state.dims["confidence"] == 0.5  # kill reset last
     before = dict(state.dims)
@@ -138,3 +138,22 @@ def test_persona_carries_the_disposition_line() -> None:
     text = persona()
     assert "You are Friday" in text and text.rstrip().splitlines()[-1].startswith(
         "Current disposition:")
+
+
+def test_only_real_kills_reset_the_mood() -> None:
+    assert mood.events_from_audit([Event(ts=1, kind="stand_down", detail="spoken_or_silence"),
+                                   Event(ts=2, kind="stand_down", detail="agent_exit:0")]) == []
+    assert mood.events_from_audit([Event(ts=3, kind="kill_command", detail="spoken"),
+                                   Event(ts=4, kind="stand_down", detail="external_kill")]) == [
+        "kill", "kill"]
+
+
+def test_sir_declining_is_not_fridays_failure() -> None:
+    assert mood.events_from_audit([_tool(1, "aborted: no spoken yes"),
+                                   _tool(2, "aborted: pin refused")]) == []
+
+
+@pytest.mark.parametrize("fact", ["Sir won't eat mushrooms", "Sir's father is retired",
+                                  "Sir designed the logo", "Sir wonders about Rust"])
+def test_fact_signals_have_no_false_positives(fact: str) -> None:
+    assert mood.events_from_context([fact], 0, 12, 0) == []

@@ -125,3 +125,40 @@ async def test_any_voice_can_stand_down_or_cut_but_not_resume(control) -> None:
     assert await _say(agent, "camera off") == ["Camera disabled, sir."]
     assert await _say(agent, "resume") == [REFUSALS["stranger"]]  # restoring = owner-only
     assert (control / "camera_off").exists() and brain.calls == 0
+
+
+async def test_each_turn_is_scored_on_its_own_audio_only(control) -> None:
+    """A reducing intent's audio must not leak into the NEXT turn's score."""
+    heard: list[int] = []
+
+    def score(pcm):
+        heard.append(len(pcm))
+        return 0.1  # a stranger
+
+    agent, brain = _agent(score)
+    agent.lock.feed((np.sin(np.arange(48_000) / 7) * 9000).astype(np.int16).tobytes(),
+                    sample_rate=24_000, channels=1)  # sir: 2s "camera off"
+    assert [c async for c in agent.llm_node(_ctx("camera off"), [], None)] == [
+        "Camera disabled, sir."]
+    assert await _say(agent, "send me a summary") == [REFUSALS["stranger"]]
+    assert heard and heard[-1] < 17_000  # ~1s of the stranger only, not 3s mixed
+    assert brain.calls == 0
+
+
+async def test_short_confirm_is_asked_again_and_gate_stays_parked(control) -> None:
+    agent, brain = _agent(lambda pcm: 0.9)
+    agent.pending_confirm = True
+    agent.lock.feed((np.sin(np.arange(9_600) / 7) * 9000).astype(np.int16).tobytes(),
+                    sample_rate=24_000, channels=1)  # a bare "Yes." ~0.4s
+    out = [c async for c in agent.llm_node(_ctx("Yes."), [], None)]
+    assert out == [REFUSALS["too_short"]]
+    assert agent.pending_confirm is True and brain.calls == 0  # nothing ran, gate still parked
+
+
+async def test_spoken_kill_is_audited_as_a_kill_command(control) -> None:
+    rows = []
+    brain = _Brain()
+    agent = FridayAgent(brain, "t", sense=lambda: None, lock=_lock(lambda pcm: 0.1),
+                        audit=lambda kind, detail: rows.append((kind, detail)))
+    await _say(agent, "stand down")
+    assert ("kill_command", "spoken") in rows

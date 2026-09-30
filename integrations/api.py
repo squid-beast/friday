@@ -114,14 +114,6 @@ def _port_open(port: int) -> bool:
         return False
 
 
-def _turn_lock_ready(s) -> bool:
-    """Per-turn owner voice is ARMED only with the switch on AND model + voiceprint present."""
-    from adapters.voiceprint import _abs
-
-    return s.voice_lock_turns and all(
-        _abs(p).is_file() for p in (s.voiceprint_model_path, s.voiceprint_path))
-
-
 def _phone_voice_installed() -> bool:
     """`make phone-voice` installed the worker agent (on-demand group)."""
     from pathlib import Path
@@ -135,6 +127,7 @@ def status(_body: dict) -> dict:
     registered Friday n8n tool (not just a URL; `make doctor` verifies it's ACTIVE);
     phone voice needs the worker installed AND LiveKit's port."""
     from client import control
+    from config import providers
     from config.settings import get_settings
     from config.tools import load_tools
 
@@ -142,7 +135,8 @@ def status(_body: dict) -> dict:
     today = today_view({})
     events = today["calendar"] or []
     wake_ready = bool(s.wake_model_path)
-    voice_lock_ready = wake_ready and bool(s.wake_verifier_path)
+    turn = providers.turn_lock(s)  # off | armed | fail-closed (refusing every turn)
+    voice_lock_ready = (wake_ready and bool(s.wake_verifier_path)) or turn == "armed"
     return {
         "daemon": control.read_state(),
         "identity": {
@@ -151,13 +145,16 @@ def status(_body: dict) -> dict:
             "wake_phrase_active": s.wake_phrase_text if wake_ready else "Hey Jarvis",
             "wake_phrase_ready": wake_ready,
             "stand_down_phrase": s.stand_down_phrase_text,
-            "voice_lock": "strict" if s.wake_require_verifier else "open",
+            "voice_lock": "strict" if (s.wake_require_verifier or turn != "off") else "open",
             "voice_lock_ready": voice_lock_ready,
-            "voice_lock_scope": "every turn" if _turn_lock_ready(s) else "wake-only",
+            "voice_lock_scope": {"armed": "every turn",
+                                 "fail-closed": "every turn — no voiceprint, refusing"}.get(
+                turn, "wake-only"),
+            "turn_lock": turn,
         },
         "systems": {
-            "brain": bool(s.anthropic_api_key),
-            "voice keys": bool(s.deepgram_api_key and s.cartesia_api_key),
+            "brain": not providers.missing(s, providers.llm_fields(s)),  # the ACTIVE LLM
+            "voice keys": not providers.missing(s, providers.voice_fields(s)),  # + active TTS
             "n8n ops": bool(s.n8n_base_url) and any(t.webhook_path for t in load_tools()),
             "phone voice": bool(s.voice_ws_url) and _phone_voice_installed()
             and _port_open(7880),

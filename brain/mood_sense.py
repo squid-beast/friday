@@ -26,7 +26,9 @@ def _audit_since(ts: float):
 async def _facts() -> list[str]:
     from adapters.memory import recall
 
-    return await recall("how sir is doing: sleep, deadlines, wins, stress", k=5)
+    # only what he said in the last 2 days: a months-old "slept badly" must not fire daily
+    return await recall("how sir is doing: sleep, deadlines, wins, stress", k=5,
+                        max_age_s=2 * _DAY)
 
 
 async def _events_today() -> int:

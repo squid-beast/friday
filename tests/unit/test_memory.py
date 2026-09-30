@@ -51,3 +51,17 @@ async def test_chroma_failure_propagates(collection: MagicMock) -> None:
     collection.count.side_effect = RuntimeError("chroma store corrupted")
     with pytest.raises(RuntimeError, match="corrupted"):
         await memory.recall("anything")
+
+
+async def test_facts_are_timestamped_and_recall_can_ask_for_recent_only(
+    collection: MagicMock,
+) -> None:
+    await memory.remember("Sir slept badly")
+    assert "ts" in collection.upsert.call_args.kwargs["metadatas"][0]
+    collection.count.return_value = 3
+    collection.query.return_value = {"documents": [["Sir slept badly"]]}
+    await memory.recall("sleep", k=2, max_age_s=3600)
+    where = collection.query.call_args.kwargs["where"]
+    assert list(where) == ["ts"] and "$gte" in where["ts"]
+    await memory.recall("sleep")  # default: no age filter at all
+    assert "where" not in collection.query.call_args.kwargs

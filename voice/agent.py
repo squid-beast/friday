@@ -57,7 +57,7 @@ def build_instructions() -> str:
     return _PERSONA_PATH.read_text(encoding="utf-8")
 
 
-def _log_refusal(kind: str, detail: str) -> None:
+def _log_event(kind: str, detail: str) -> None:
     from audit.log import log_event
 
     log_event(kind, detail)
@@ -81,7 +81,7 @@ class FridayAgent(agents.Agent):
         self.styler = styler or Styler()  # mood -> voice, safety-gated (voice/emotion.py)
         self._sense = sense  # folds this session's audit events into the mood each turn
         self.lock = lock or OwnerLock.from_settings()  # per-turn owner voice (Phase 5)
-        self._audit = audit or _log_refusal
+        self._audit = audit or _log_event
         self._config = {"configurable": {"thread_id": thread_id}}
         self.muted = False
         self.last_activity = time.monotonic()
@@ -101,6 +101,7 @@ class FridayAgent(agents.Agent):
     async def llm_node(  # replaces the default LLM step of the pipeline
         self, chat_ctx: Any, tools: Any, model_settings: Any
     ) -> AsyncIterator[str]:
+        pcm = self.lock.take()  # THIS turn's audio only — drained on every path, never mixed
         utterance = _last_user_text(chat_ctx)
         if not utterance:
             return
@@ -109,6 +110,7 @@ class FridayAgent(agents.Agent):
         say = self.styler.line
         if intent is Intent.STAND_DOWN:
             yield say("Standing down, sir.", "kill")  # flat, tag-free: never styled
+            self._audit("kill_command", "spoken")  # a REAL kill (the mood resets on this)
             touch_stand_down()
             return
         if intent in (Intent.CAMERA_OFF, Intent.SCREEN_OFF):
@@ -120,7 +122,7 @@ class FridayAgent(agents.Agent):
         if self.muted and intent is not Intent.RESUME:
             return  # listening silently — no speech, no tokens (and no gate resume)
         # everything below is CAPABILITY-granting: sir's voice only (when the lock is armed)
-        verdict = await asyncio.to_thread(self.lock.verdict, self.lock.take())
+        verdict = await asyncio.to_thread(self.lock.verdict, pcm)
         if verdict not in ("owner", "unlocked"):
             self._audit("voice_refused", verdict)
             yield say(REFUSALS[verdict], "refusal")

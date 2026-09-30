@@ -98,3 +98,19 @@ async def test_open_or_search_runs_open_with_an_argument_list() -> None:
     assert calls[-1][0] == "open" and "rm+-rf" in calls[-1][1] and out.startswith("opened")
     assert "can't find" in await mac_actions.open_or_search("", "open Photoshop", run=run,
                                                             apps=apps)
+
+
+async def test_installed_app_names_beat_search_words_and_my_names_are_left_alone() -> None:
+    calls = []
+
+    def run(cmd, **kw):
+        calls.append(cmd)
+        return SimpleNamespace(returncode=0)
+
+    apps = lambda: {"google chrome": "Google Chrome", "apps": "Apps"}  # noqa: E731
+    assert await mac_actions.open_or_search("", "open Google Chrome", run=run,
+                                            apps=apps) == "opened Google Chrome"
+    assert calls[-1] == ["open", "-a", "Google Chrome"]
+    out = await mac_actions.open_or_search("", "open my apps", run=run, apps=apps)
+    assert out.startswith("I can't find") and calls[-1] != ["open", "-a", "Apps"]
+    assert mac_actions.search_url("please google flights") is None  # google only as the verb

@@ -33,3 +33,8 @@ gesture/handpose
 
 # downloaded speaker-embedding model + enrolled voiceprint (biometric: never committed)
 voice/models/
+# raw voice recordings + voice-trained models are biometric too (record -> enroll -> push)
+voice/enroll/
+voice/wakeword/samples/
+voice/wakeword/*.onnx
+voice/wakeword/*.joblib

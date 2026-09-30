@@ -1,9 +1,35 @@
 # PROGRESS
 
 ## Current phase
-docs/phases/PHASE-1 (cleanup + integrations) DONE 2026-09-29. Next spec in line:
-docs/phases/PHASE-2-multi-model-llm.md (only on Lohith's go-ahead). v1 demo still
-waits on Lohith's strict-owner wake recordings/training + live acceptance runs.
+Phases 1, 1b, 2–6 + the Phases 2–6 adversarial-review fixes DONE and committed
+phase-wise on local `main` (2026-09-30). NOT pushed — Lohith pushes
+(`git push -u origin main` to private squid-beast/friday). Everything remaining
+is Lohith-side setup (README §15 TODO), then DEMO-SCRIPT clean takes = v1 DONE.
+
+## Phases 1b–6 + review fixes (2026-09-29 → 2026-09-30)
+- 1b Link everything: n8n over tailnet HTTP, Friday-only tools, business
+  workflows never touched; phone voice on demand; recall disarmed truthfully;
+  HUD automations per workflow; doctor n8n check = active POST webhooks.
+- 2 Multi-provider LLM (anthropic default | openai | openrouter | gemini |
+  compatible) behind adapters/llm.py; config/providers.py drives status+doctor.
+- 3 Mood engine (5 dims, real triggers) + emotional voice (OpenAI TTS tone,
+  Fish S1 dormant, Cartesia default); safety gate keeps gated lines neutral.
+- 4 Buddy: today_plan (Obsidian daily note), open_and_search, proactive
+  check-ins (com.friday.checkin 09/13/19 → notification + next-wake follow-up),
+  send_summary → Friday-owned n8n "Friday — Send me a summary" (INACTIVE; chat
+  id is a placeholder in its Telegram node).
+- 5 Only-my-voice: per-turn CAM++ voiceprint gate in llm_node, fail closed,
+  kills from any voice, neutral greeting on unverified wake. Arms only after
+  enrollment + VOICE_LOCK_TURNS=true. Mic only — web/API guarded by Access+key.
+- 6 Deploy scaffold: docs/DEPLOY.md (Cloudflare Tunnel + Access), on-demand
+  tunnel plist, `make tunnel[-off]`. Not live (DNS still on registrar parking).
+- Review: 37 confirmed findings fixed (audio scoping, gated TTS, truthful
+  status/doctor, Telegram id out of .env, memory ts + 2-day mood facts,
+  gitignored biometrics, docs truth).
+- Verification: lint green; 749 unit + 15 integration/scenario green; router
+  (44) + tool (31) evals PASSED vs real model; doctor = only send_summary
+  inactive (expected); status truthful (wake-only, turn lock off, Hey Jarvis
+  active).
 
 ## Phase 1 — cleanup, full Friday rename, integrations audit (2026-09-29)
 - Splits (no behavior change): api.py -> api.py + api_hud.py + api_devices.py
@@ -201,23 +227,19 @@ waits on Lohith's strict-owner wake recordings/training + live acceptance runs.
 - Tests: lint green; 293 L1 unit; 9 L2 integration; 1 L4 scenario; 30-case L3 eval.
 
 ## Next step
-1. Lohith: decide the n8n base URL (VPS now serves plain HTTP on :5678; its
-   tailscale-serve TLS front is gone) -> restore `tailscale serve` on the VPS or
-   set N8N_BASE_URL=http://... ; then `make doctor` = all clear.
-2. Lohith: update each n8n workflow's header check to X-Friday-Secret, then activate.
-3. Lohith: strict Friday wake — record/train wake.onnx + owner.joblib, set
-   WAKE_MODEL_PATH / WAKE_VERIFIER_PATH / WAKE_REQUIRE_VERIFIER=true.
-4. Next code phase: docs/phases/PHASE-2-multi-model-llm.md on his go-ahead.
+Lohith, in README §15 order: push to GitHub; set the Telegram chat id in the
+summary workflow + activate; OPENAI_API_KEY (+ TTS_PROVIDER=openai to hear the
+emotional voice); record + train "Hey Friday"; record + enroll voiceprint, set
+VOICE_LOCK_TURNS=true; Cloudflare DNS/tunnel/Access (docs/DEPLOY.md), then
+retire Tailscale Funnel; DEMO-SCRIPT clean takes x3.
 
 ## Open bugs / blockers
-- [ ] make doctor: n8n FAIL (SSL wrong version — VPS answers http on :5678). Lohith's call.
-- [ ] Docker Desktop not running -> com.friday.livekit exits 1 (retries) and the
-      voiceworker (phone voice) can't reach LiveKit. Mac wake path unaffected.
-- [ ] Phone/browser sessions holding only the old jarvis_key cookie must re-open
-      once with ?key=.
+- [ ] make doctor: send_summary workflow inactive — Lohith sets chat id + activates.
+- [ ] Docker Desktop needed only for phone voice (`make phone-voice`); no phone
+      mic client exists today (voice.js removed) — server side only.
+- [ ] Strict Friday wake + per-turn lock not armed until recordings/enrollment.
+- [ ] Public deploy blocked on moving paypilotlabs.com DNS to Cloudflare.
 - [ ] ~/Jarvis Life OS/ (old logs only) still on disk — archive/delete is Lohith's call.
-- [ ] Strict Friday wake not live until the custom wake model + verifier are trained.
-
 ## n8n WIRED over the tailnet (2026-08-15)
 - Base URL + API key in .env; n8n reachable (200) at the VPS's ts.net name.
 - 49 workflows enumerated via API — ALL inactive. 5 wired live in tools.yaml

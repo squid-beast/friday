@@ -23,14 +23,15 @@ class Settings(BaseSettings):
     # LLM — PLAN §6's `claude-*-latest` aliases don't exist; these are real model IDs.
     # llm_provider: anthropic (default) | openai | openrouter | gemini | compatible
     # (compatible = any OpenAI-compatible server at llm_base_url, e.g. Ollama/vLLM).
-    # model_smart/fast are provider-specific ids; Claude ids on another provider fall
-    # back to that provider's defaults (adapters/llm_openai.py).
+    # model_smart/fast are provider-specific ids; Claude ids on openai/openrouter/gemini
+    # fall back to that provider's defaults; `compatible` requires explicit ids.
     llm_provider: str = "anthropic"
     anthropic_api_key: str = ""
     openai_api_key: str = ""
     google_api_key: str = ""
     openrouter_api_key: str = ""
-    llm_base_url: str = ""  # override/required base URL for OpenAI-compatible providers
+    llm_base_url: str = ""  # LLM_PROVIDER=compatible only: your server's /v1 URL
+    llm_api_key: str = ""  # LLM_PROVIDER=compatible only (optional; never the OpenAI key)
     model_smart: str = "claude-sonnet-5"
     model_fast: str = "claude-haiku-4-5"
 
@@ -74,7 +75,6 @@ class Settings(BaseSettings):
     n8n_base_url: str = ""
     n8n_webhook_secret: str = ""
     n8n_api_key: str = ""  # public REST API (executions read for the HUD)
-    telegram_chat_id: str = ""  # where the Friday summary workflow sends (his own chat)
 
     # Vision (Phase 5)
     screenpipe_url: str = "http://127.0.0.1:3030"

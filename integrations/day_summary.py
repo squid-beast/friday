@@ -5,12 +5,11 @@ digest LOCALLY (calendar, today's plan, pending reminders, job search, what she
 did today) and POSTs it to the Friday-owned n8n workflow "Friday — Send me a
 summary" (/webhook/friday-summary, header auth X-Friday-Secret), which delivers
 it to sir's Telegram via his bot. No business workflow is involved. Every source
-degrades independently; a missing chat id or unreachable n8n is a spoken fact.
+degrades independently. The Telegram recipient is set once in the n8n workflow
+(never sent from here).
 """
 
 import time
-
-from config.settings import get_settings
 
 
 async def _calendar() -> str:
@@ -64,9 +63,8 @@ async def build() -> str:
 async def send(webhook_path: str, utterance: str) -> str:
     from adapters.n8n import call
 
-    chat_id = get_settings().telegram_chat_id
-    if not chat_id:
-        return "TELEGRAM_CHAT_ID isn't set in .env, so I don't know where to send it"
     summary = await build()
-    await call(webhook_path, {"utterance": utterance, "summary": summary, "chat_id": chat_id})
+    # no chat id in the payload: the recipient is fixed INSIDE the Friday workflow, so a
+    # leaked webhook secret can't turn his bot into a relay to arbitrary chats
+    await call(webhook_path, {"utterance": utterance, "summary": summary})
     return "the day summary is on its way to your Telegram"

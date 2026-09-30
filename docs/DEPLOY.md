@@ -18,12 +18,17 @@
 | 1 | `make lint && make test` green | run them |
 | 2 | `make doctor` says **all clear** | `make doctor` |
 | 3 | `APP_ACCESS_KEY` is set (32 hex) | the dashboard answers **401** without the key: `curl -s -o /dev/null -w '%{http_code}' http://127.0.0.1:8787/` → `401` |
-| 4 | **Owner-voice lock armed** (Phase 5) | dashboard header shows lock scope **every turn** (see §6 of README) |
-| 5 | A spoken **PIN** is set for PIN-gated tools | `.env` → `FRIDAY_PIN=` (4 digits) |
+| 4 | **Owner-voice lock armed** (Phase 5) | dashboard header shows lock scope **every turn** (README §4 "Owner voice") |
+| 5 | A spoken **PIN** is set | `.env` → `FRIDAY_PIN=` (4 digits) — note: no `risk: pin` tool is registered today, so this guards future PIN tools only |
 
-Why #4: once Friday is on the public internet, a stolen access-key cookie must still not
-be enough to *act*. The voice lock (and the PIN for destructive actions) is the layer that
-makes the dashboard safe to expose.
+**Be precise about what protects what.** The owner-voice lock and the spoken PIN guard
+**spoken turns on the Mac's microphone only**. Every HTTP request — the dashboard, `/jobs`,
+and text turns via `POST /api/v1/conversation` — is protected **solely by Cloudflare
+Access + `APP_ACCESS_KEY`**. Anyone past both of those can type a command and answer a
+confirm gate with "yes" (the same as your phone can). So: keep the Access policy to your
+own identity, keep the key secret, and rotate it (`openssl rand -hex 16` →
+`APP_ACCESS_KEY`, restart the dashboard) if a device is lost. #4 matters for the SPOKEN
+side: once you rely on remote access, the house voice path shouldn't obey strangers either.
 
 ---
 
@@ -31,9 +36,11 @@ makes the dashboard safe to expose.
 
 The repo is **private** and currently **empty**; your local `main` already holds one commit
 per phase (baseline → Phase 1 → 1b → 2 → 3 → 4 → 5 → 6 → docs). Secrets never enter git:
-`.env*` (except `.env.example`), `data/`, `voice/models/` (speaker model + your
-voiceprint), `reference/`, `ui/build/`, `node_modules/`, `.coverage` and the compiled
-gesture binary are all in `.gitignore`.
+`.env*` (except `.env.example`), `data/`, **every voice artifact** — `voice/models/`
+(speaker model + your voiceprint), `voice/wakeword/samples/` and `voice/enroll/` (your raw
+recordings), `voice/wakeword/*.onnx|*.joblib` (models trained on your voice) —
+`reference/`, `ui/build/`, `node_modules/`, `.coverage` and the compiled gesture binary
+are all in `.gitignore` (pinned by tests/unit/test_gitignore.py).
 
 ```bash
 cd ~/friday
@@ -127,11 +134,16 @@ restarts on crash (KeepAlive) and logs to
 ## 6 · The layered front door (the whole picture)
 
 ```
+WEB / API (phone, browser, curl):
 Internet ─▶ Cloudflare Access (identity: your email OTP / passkey)   ← a stranger stops here
          ─▶ Cloudflare Tunnel ─▶ 127.0.0.1:8787 on the Mac
          ─▶ APP_ACCESS_KEY cookie / Bearer (device)                   ← 401 without it
-         ─▶ owner-voice lock, every spoken turn (biometric, Phase 5)  ← strangers refused
-         ─▶ spoken PIN for PIN-risk tools; spoken "yes" for confirm tools
+         ─▶ typed "yes" answers confirm gates (no voice/PIN check on this path)
+
+VOICE (the Mac's microphone only):
+mic ─▶ offline kill intents (any voice)
+    ─▶ owner-voice lock, every spoken turn (biometric, Phase 5)     ← strangers refused
+    ─▶ spoken "yes" for confirm tools · spoken PIN for PIN tools
 Always local : vault · calendar · Spotify · job files · models' API keys
 Always offline: "Stand down" · camera/screen off · menu-bar 😴 kill
 ```

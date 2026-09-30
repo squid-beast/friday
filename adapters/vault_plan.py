@@ -1,10 +1,12 @@
 """friday · adapters/vault_plan.py
 
-Today's plan, kept in sir's own Obsidian daily note — `daily/YYYY/YYYY-MM-DD.md`
-(the vault's .obsidian/daily-notes.json convention) under a "## Friday plan"
-heading of checkboxes. The SECOND and last vault write path (after
-append_inbox): it goes through vault._resolve, so escapes and off-limits
-folders are refused exactly as for reads. Tool: `today_plan`.
+Today's plan, kept in sir's own Obsidian daily note — `daily/<current year>/YYYY-MM-DD.md`
+under a "## Friday plan" heading of checkboxes. (The vault's .obsidian/daily-notes.json
+hard-codes the folder "daily/2026"; Friday follows the year, so next January also update
+Obsidian's Daily Notes folder to daily/2027 to keep both writing the same note.)
+The SECOND and last vault write path (after append_inbox): it goes through
+vault._resolve, so escapes and off-limits folders are refused exactly as for
+reads. Tool: `today_plan`.
 """
 
 import asyncio

@@ -23,7 +23,7 @@ what's unlocked *today* while later stages are pending.
 | **Dashboard + text API** | `make dashboard` → http://127.0.0.1:8787 | The passive one-screen dashboard (Now, Metrics, Today, Jobs, HUD, recent conversation) + `/jobs`; typed turns go to `POST /api/v1/conversation` (Bearer key) — no chat box | Anthropic key only — **works now** |
 | **Talk (console)** | `make voice` | Full voice conversation on the Mac's mic/speakers with barge-in. No Docker, no wake phrase — press Ctrl-C to stop. The Phase 2 acceptance path | All 3 Stage 1 keys + mic permission |
 | **Hands-free (menu bar)** | `uv run python -m client.killswitch` | 😴 in the menu bar; the bundled fallback is "Hey Jarvis" until you train Friday, then "Hey Friday" wakes him. "Stand Down" / ⌥⌘J kills. This is daily-driver mode, started by hand | Same as voice |
-| **Everything, on login** | `make install-launchd` → reboot | Four agents forever: dashboard, killswitch, hourly metrics, hourly logrotate (phone voice on demand: `make phone-voice`). Zero terminals | Stage 2 |
+| **Everything, on login** | `make install-launchd` → reboot | Five agents: dashboard, killswitch, hourly metrics, hourly logrotate, the 09:00/13:00/19:00 proactive check-in. On demand: `make phone-voice`, `make tunnel`. Zero terminals | Stage 2 |
 | **Phone** | Stage 5 (`tailscale serve`) → PWA on the iPhone | The same passive dashboard + `/jobs` from anywhere on the tailnet. Phone-mic voice has NO client today (the browser LiveKit client was removed 2026-09-29) | Stage 5 |
 
 Utility surfaces: `make doctor` (health), `make eval` (router accuracy vs the
@@ -33,6 +33,13 @@ real model), `make test` / `test-integration` / `test-scenario` (no network),
 ---
 
 ## Stage 1 — The three API keys (~10 min) → unlocks voice, vault, memory, audit
+
+> **Providers are switchable (2026-09-30).** Brain: `LLM_PROVIDER=anthropic` (default) |
+> `openai` | `openrouter` | `gemini` | `compatible` (a local Ollama/vLLM via `LLM_BASE_URL`,
+> optional `LLM_API_KEY`, and your server's model ids in `MODEL_SMART`/`MODEL_FAST`).
+> Voice out: `TTS_PROVIDER=cartesia` (default) | `openai` (gpt-4o-mini-tts, mood → tone;
+> needs `OPENAI_API_KEY`) | `fishaudio` (`FISH_API_KEY` + `FISH_VOICE_ID` of a cloned
+> voice). `make doctor` checks whichever are ACTIVE.
 
 ### 1a. Anthropic (the brain — Sonnet answers, Haiku routes) — ✅ KEY OBTAINED 2026-08-11
 
@@ -71,8 +78,8 @@ openssl rand -hex 32   # run twice; use one for each below
 ```bash
 make doctor
 ```
-`anthropic / deepgram / cartesia` must say pass (screenpipe/moondream/n8n may
-still fail — later stages). Then the first real conversation:
+The `llm` (active brain), `deepgram` and `tts` (active voice) checks must pass (n8n may
+still fail until Stage 4; screen recall + camera are reported "dark by design"). Then the first real conversation:
 
 ```bash
 make voice
@@ -90,8 +97,9 @@ That's Phase 2 acceptance done.
 make install-launchd
 ```
 
-Installs four `com.friday.*` launch agents: dashboard, killswitch (menu bar
-😴/🎙), hourly metrics, hourly logrotate. Phone voice (LiveKit in Docker +
+Installs five `com.friday.*` launch agents: dashboard, killswitch (menu bar
+😴/🎙), hourly metrics, hourly logrotate, and the proactive check-in (a caring
+notification at 09:00/13:00/19:00, never at login; `PROACTIVE_CHECKINS=false` mutes it). Phone voice (LiveKit in Docker +
 voiceworker) is on demand: start Docker Desktop, then `make phone-voice`.
 Screenpipe + moondream agents were removed 2026-09-29 (doctor reports them "dark
 by design"). If you set `HOTKEY`, macOS will prompt for **Accessibility** — allow.
@@ -144,6 +152,10 @@ the same n8n are never edited, activated, called, or targeted by a tool
    tests/evals/tool_cases.yaml. Activate it in the n8n editor (your call).
 4. `make doctor` FAILS if a registered path has no ACTIVE POST workflow.
    Workflows receive `{"utterance": "<what you said>", ...}`.
+
+The one Friday workflow today: **"Friday — Send me a summary"** (created inactive).
+Open it → "Send to Telegram" node → set Chat ID to your own Telegram chat id (message
+@userinfobot) → Save → Active. Then "send me a summary of my day" → "yes".
 
 Parked (no Friday tools today): Mission Board metric webhooks
 (config/metrics.yaml) and Content Studio trending/publish (docs/archive/).
@@ -210,17 +222,40 @@ KILL_MODEL_PATH=voice/wakeword/standdown.onnx
 Tune `WAKE_THRESHOLD` (up if false wakes, down if he misses you across the
 room). This arms the REAL wake phrase and the spoken offline "stand down".
 
+### 6b. Only-my-voice (per-turn owner lock)
+```bash
+uv run python -m scripts.record_voice_verifier   # your normal speech (NOT the phrase)
+# optional: 2–5 min of reading saved as voice/enroll/*.wav (16 kHz mono WAV)
+uv run python -m scripts.enroll_voice            # builds the voiceprint + suggests a threshold
+```
+`.env`: `VOICE_LOCK_TURNS=true`, `VOICEPRINT_THRESHOLD=<suggested>`; restart the killswitch.
+Then have a friend speak — Friday must answer "I only take instructions from sir." Stand
+down / camera off / mute still work from any voice. While armed WITHOUT a wake verifier,
+a wake gets a neutral greeting only (no brief/check-in) until you speak. All recordings,
+models and the voiceprint are gitignored (biometric). The speaker model itself
+(`voice/models/wespeaker_en_voxceleb_CAM++.onnx`, 29.3 MB) is not in git: download it
+as documented in `adapters/voiceprint.py`.
+
 ---
 
 ## Stage 7 — The demo
 
 ```bash
-make eval            # router >= 90% (33 cases) — first real-model run
+make eval            # router (44 cases) + tool selection (31 cases), each >= 90%
 make test-scenario   # the machine already rehearses your exact script
 ```
 
 Then **docs/DEMO-SCRIPT.md**: one continuous take, 8 steps, no keyboard.
 Three clean runs in a row = v1 COMPLETE. Log failed attempts in its table.
+
+---
+
+## Stage 8 — Go public (only after 6b + a PIN)
+
+Follow **docs/DEPLOY.md**: Cloudflare DNS (copy existing records first), tunnel,
+Access policy, `make tunnel`, acceptance from the phone, then retire Tailscale Funnel.
+Remember the scope: the voice lock guards the microphone; the web surface is guarded by
+Cloudflare Access + `APP_ACCESS_KEY`.
 
 ---
 

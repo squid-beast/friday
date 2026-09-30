@@ -92,6 +92,27 @@ def test_voice_lock_scope_says_every_turn_only_when_truly_armed(monkeypatch, tmp
     monkeypatch.setenv("VOICE_LOCK_TURNS", "true")
     get_settings.cache_clear()
     model.write_bytes(b"onnx")
-    assert api.status({})["identity"]["voice_lock_scope"] == "wake-only"  # no voiceprint yet
+    ident = api.status({})["identity"]  # flag on, no voiceprint: the agent refuses EVERY turn
+    assert ident["voice_lock_scope"] == "every turn — no voiceprint, refusing"
+    assert ident["turn_lock"] == "fail-closed" and ident["voice_lock_ready"] is False
     voice.write_bytes(b"npy")
-    assert api.status({})["identity"]["voice_lock_scope"] == "every turn"
+    ident = api.status({})["identity"]
+    assert ident["voice_lock_scope"] == "every turn" and ident["voice_lock_ready"] is True
+    monkeypatch.setenv("VOICE_LOCK_TURNS", "false")
+    get_settings.cache_clear()
+    assert api.status({})["identity"]["voice_lock_scope"] == "wake-only"
+
+
+def test_brain_and_voice_chips_follow_the_active_providers(monkeypatch) -> None:
+    monkeypatch.setenv("LLM_PROVIDER", "openai")
+    monkeypatch.setenv("OPENAI_API_KEY", "sk-t")
+    monkeypatch.setenv("ANTHROPIC_API_KEY", "")
+    monkeypatch.setenv("TTS_PROVIDER", "openai")
+    monkeypatch.setenv("DEEPGRAM_API_KEY", "dg")
+    monkeypatch.setenv("CARTESIA_API_KEY", "")
+    get_settings.cache_clear()
+    systems = api.status({})["systems"]
+    assert systems["brain"] is True and systems["voice keys"] is True  # no Anthropic/Cartesia
+    monkeypatch.setenv("TTS_PROVIDER", "fishaudio")
+    get_settings.cache_clear()
+    assert api.status({})["systems"]["voice keys"] is False  # Fish key + voice id missing

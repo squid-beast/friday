@@ -57,7 +57,7 @@ def test_notify_passes_text_as_argv_never_into_the_script() -> None:
     evil = 'hi" & do shell script "rm -rf ~'
     pc.notify(evil, run=lambda cmd, **kw: calls.append(cmd) or SimpleNamespace(returncode=0))
     cmd = calls[0]
-    assert cmd[0] == "osascript" and cmd[-1] == evil
+    assert cmd[0] == "osascript" and cmd[-2:] == ["--", evil]
     assert all(evil not in part for part in cmd[:-1])  # script body never contains the text
 
 
@@ -67,7 +67,11 @@ def test_main_notifies_queues_for_wake_and_audits() -> None:
     async def compose():
         return "Rest well tonight, sir."
 
-    assert pc.main([], compose_fn=compose, notify_fn=posted.append) == 0
+    def deliver(text):
+        posted.append(text)
+        return True
+
+    assert pc.main([], compose_fn=compose, notify_fn=deliver) == 0
     assert posted == ["Rest well tonight, sir."]
     assert pending_question.take_for_wake() == "Rest well tonight, sir."
     from audit.log import today
@@ -109,7 +113,7 @@ async def test_summary_degrades_per_source(monkeypatch) -> None:
     assert "Plan: unavailable (RuntimeError)" in text and "Jobs: latest batch: 3 roles" in text
 
 
-async def test_summary_needs_a_chat_id_then_posts_to_the_friday_workflow(monkeypatch) -> None:
+async def test_summary_posts_to_the_friday_workflow_without_a_recipient(monkeypatch) -> None:
     sent = {}
 
     async def call(path, payload):
@@ -121,13 +125,51 @@ async def test_summary_needs_a_chat_id_then_posts_to_the_friday_workflow(monkeyp
 
     monkeypatch.setattr("adapters.n8n.call", call)
     monkeypatch.setattr(day_summary, "build", build)
-    monkeypatch.setenv("TELEGRAM_CHAT_ID", "")
-    get_settings.cache_clear()
-    assert "TELEGRAM_CHAT_ID" in await day_summary.send("/webhook/friday-summary", "send it")
-    assert sent == {}
-    monkeypatch.setenv("TELEGRAM_CHAT_ID", "12345")
-    get_settings.cache_clear()
     assert "Telegram" in await day_summary.send("/webhook/friday-summary", "send it")
     assert sent["path"] == "/webhook/friday-summary"
-    assert sent["payload"] == {"utterance": "send it", "summary": "the digest",
-                               "chat_id": "12345"}
+    # the chat id is fixed inside the workflow: a leaked secret can't redirect the bot
+    assert sent["payload"] == {"utterance": "send it", "summary": "the digest"}
+
+
+
+def test_a_line_starting_with_a_dash_is_never_an_osascript_option() -> None:
+    calls = []
+    pc.notify("-e property p : 1", run=lambda c, **k: calls.append(c) or SimpleNamespace(
+        returncode=0))
+    assert calls[0][-2:] == ["--", "-e property p : 1"]
+
+
+def test_undelivered_nudge_is_neither_audited_nor_queued() -> None:
+    async def compose():
+        return "hello sir"
+
+    pc.main([], compose_fn=compose, notify_fn=lambda text: False)
+    assert pending_question.take_for_wake() == ""
+    from audit.log import today
+
+    assert not any(e.kind == "proactive_checkin" for e in today())
+
+
+async def test_next_event_skips_ones_already_over() -> None:
+    import time
+
+    seen = {}
+
+    async def think(prompt, **kw):
+        seen["prompt"] = prompt
+        return "ok sir"
+
+    async def recall(q, k):
+        return []
+
+    from adapters.calendar import CalEvent
+
+    now = time.time()
+    past = CalEvent(title="standup", start_ts=now - 3600, end_ts=now - 3000)
+    soon = CalEvent(title="dentist", start_ts=now + 3600, end_ts=now + 5400)
+
+    async def events():
+        return [past, soon]
+
+    await pc.compose(think=think, recall=recall, events=events, hour=13)
+    assert "dentist" in seen["prompt"] and "standup" not in seen["prompt"]

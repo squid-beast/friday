@@ -23,6 +23,7 @@ from pydantic import BaseModel, Field
 from config.settings import get_settings
 
 DIMS = ("valence", "arousal", "warmth", "confidence", "concern")
+_KILLS = ("spoken_kill", "external_kill")  # client/daemon.py end reasons that ARE kills
 BASELINE = 0.5
 HALF_LIFE_H = 6.0  # a feeling fades by half every 6h: nothing lasts a day without cause
 
@@ -36,12 +37,14 @@ TRIGGERS: dict[str, dict[str, float]] = {  # docs/EMOTIONS.md trigger table
     "win": {"valence": 0.15, "warmth": 0.05},
     "return_after_absence": {"warmth": 0.15},
 }
-_FACT_SIGNALS = {  # remembered facts -> events (checked at wake)
-    "poor_sleep": re.compile(r"slept (badly|poorly|little)|no sleep|didn'?t sleep|tired|"
-                             r"exhausted|insomnia|up all night", re.I),
-    "deadline_soon": re.compile(r"deadline|due (today|tomorrow|friday|monday)|submit by", re.I),
-    "win": re.compile(r"shipped|launched|got the (job|offer)|interview (went|passed)|won|"
-                      r"closed (a|the) deal|signed", re.I),
+_FACT_SIGNALS = {  # remembered facts -> events (checked at wake); word-bounded on purpose
+    "poor_sleep": re.compile(r"\b(slept (badly|poorly|little)|no sleep|didn'?t sleep|tired|"
+                             r"exhausted|insomnia|up all night)\b", re.I),
+    "deadline_soon": re.compile(r"\b(deadline|due (today|tomorrow|friday|monday)|submit by)\b",
+                                re.I),
+    "win": re.compile(r"\b(shipped|launched|got the (job|offer)|interview (went|passed)|"
+                      r"won(?!'?t)|closed (a|the) deal|signed (the|a) (contract|deal|offer))\b",
+                      re.I),
 }
 
 
@@ -95,15 +98,18 @@ def apply(state: MoodState, event: str) -> MoodState:
 def events_from_audit(events) -> list[str]:
     out = []
     for e in events:
-        if e.kind == "stand_down":
+        # only a REAL kill resets the mood — a silence timeout or agent exit also writes a
+        # stand_down row, and must not wipe a feeling that has a real cause
+        if e.kind == "kill_command" or (e.kind == "stand_down" and e.detail in _KILLS):
             out.append("kill")
         elif e.kind == "tool" and e.detail:
             try:
                 result = str(json.loads(e.detail).get("result", ""))
             except ValueError:
                 continue
-            failed = result.startswith(("failed", "aborted"))
-            out.append("tool_failure" if failed else "tool_success")
+            if result.startswith("aborted"):
+                continue  # sir declined (no yes / wrong PIN): not Friday's failure
+            out.append("tool_failure" if result.startswith("failed") else "tool_success")
     return out
 
 

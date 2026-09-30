@@ -52,8 +52,10 @@ async def compose(*, think=None, recall=None, events=None, hour: int | None = No
     except Exception:
         log.warning("recall failed", exc_info=True)
     try:
-        upcoming = await events()
-        if upcoming:
+        now = time.time()
+        upcoming = [e for e in await events()  # all-day events start at midnight: keep them
+                    if getattr(e, "all_day", False) or getattr(e, "start_ts", now) >= now]
+        if upcoming:  # the NEXT event, not the day's first one (which may be over)
             context += f" Next on his calendar: {format_event(upcoming[0])}."
     except Exception:
         log.warning("calendar read failed", exc_info=True)
@@ -62,10 +64,12 @@ async def compose(*, think=None, recall=None, events=None, hour: int | None = No
 
 
 def notify(text: str, run=subprocess.run) -> bool:
-    """macOS notification. The text rides in argv — never interpolated into script."""
+    """macOS notification. The text rides in argv after "--" — never interpolated into the
+    script, never parsed as an osascript option (a line may start with "-")."""
     script = ["-e", "on run argv", "-e",
               'display notification (item 1 of argv) with title "Friday"', "-e", "end run"]
-    return run(["osascript", *script, text], check=False, capture_output=True).returncode == 0
+    cmd = ["osascript", *script, "--", text]
+    return run(cmd, check=False, capture_output=True).returncode == 0
 
 
 def main(argv: list[str] | None = None, *, compose_fn=compose, notify_fn=notify) -> int:
@@ -83,7 +87,9 @@ def main(argv: list[str] | None = None, *, compose_fn=compose, notify_fn=notify)
         return 0
     if not line:
         return 0
-    notify_fn(line)
+    if not notify_fn(line):
+        log.warning("proactive check-in notification was not delivered")
+        return 0  # never audit or follow up a nudge sir never saw
     pending_question.queue_for_wake(line)
     log_event("proactive_checkin", line[:120])
     print(line)

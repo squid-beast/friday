@@ -18,6 +18,8 @@ import numpy as np
 
 _REPO = Path(__file__).resolve().parents[1]
 SR = 16_000
+_FRAME = 320  # 20ms at 16kHz for the voiced-audio trim
+_RMS_FLOOR = 0.01
 
 
 def _abs(path: str) -> Path:
@@ -30,6 +32,17 @@ def _session(model_path: str):
     import onnxruntime as ort
 
     return ort.InferenceSession(str(_abs(model_path)), providers=["CPUExecutionProvider"])
+
+
+def voiced(pcm: np.ndarray) -> np.ndarray:
+    """Only 20ms frames with real energy — silence would dilute an embedding. The SAME trim
+    is used at enrollment and at runtime (voice/owner_lock.py), so the scores compare."""
+    n = len(pcm) // _FRAME
+    if n == 0:
+        return np.zeros(0, np.float32)
+    frames = pcm[: n * _FRAME].reshape(n, _FRAME)
+    loud = np.sqrt((frames ** 2).mean(axis=1)) > _RMS_FLOOR
+    return frames[loud].reshape(-1)
 
 
 def features(pcm16k: np.ndarray) -> np.ndarray:
@@ -69,14 +82,32 @@ def load_wav(path: str | Path) -> np.ndarray:
     return pcm
 
 
+def clip_embeddings(wavs: list[Path], model_path: str) -> np.ndarray:
+    """One embedding per clip, on the VOICED audio (runtime's scoring path).
+    Clips with under half a second of voice are skipped."""
+    trimmed = (voiced(load_wav(p)) for p in wavs)
+    vecs = [embed(v, model_path) for v in trimmed if len(v) >= SR // 2]
+    if not vecs:
+        raise ValueError("no usable enrollment recordings (all silent or too short)")
+    return np.stack(vecs)
+
+
+def _normalise(v: np.ndarray) -> np.ndarray:
+    return v / (np.linalg.norm(v) + 1e-9)
+
+
 def enroll(wavs: list[Path], model_path: str, out_path: str) -> Path:
-    if not wavs:
-        raise ValueError("no enrollment recordings")
-    mean = np.mean([embed(load_wav(p), model_path) for p in wavs], axis=0)
     out = _abs(out_path)
     out.parent.mkdir(parents=True, exist_ok=True)
-    np.save(out, mean / (np.linalg.norm(mean) + 1e-9))
+    np.save(out, _normalise(clip_embeddings(wavs, model_path).mean(axis=0)))
     return out
+
+
+def leave_one_out(embeddings: np.ndarray) -> np.ndarray:
+    """Each clip scored against a print built from the OTHER clips — an honest estimate of
+    how sir scores at runtime (in-sample scores are inflated)."""
+    total = embeddings.sum(axis=0)
+    return np.array([float(np.dot(e, _normalise(total - e))) for e in embeddings])
 
 
 def score(pcm16k: np.ndarray, voiceprint_path: str, model_path: str) -> float:

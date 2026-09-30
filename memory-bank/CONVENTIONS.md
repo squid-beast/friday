@@ -113,3 +113,14 @@ Replace the single file in adapters/ keeping the same interface signature. Nothi
   and, if routing wording changes, router_cases.yaml — run `make eval` (both >=90%).
 - Local-first: a capability that reads local data (jobs, notes, calendar) is a
   local tool, not an n8n round-trip.
+
+## Providers + voice safety (2026-09-30)
+- "Which key is active" lives in ONE place: config/providers.py. Status chips, doctor
+  quick checks and adapters all ask it — never re-derive provider keys locally.
+- A new LLM/TTS vendor = one branch in adapters/llm_openai.py or adapters/tts.py + a
+  providers.py entry. No graph edits.
+- Any new spoken line that gates, refuses, kills or apologises must be classified in
+  voice/styling.py `kind_of` so emotional TTS keeps it neutral (test in test_styling).
+- New voice-agent intents go AFTER the capability-reducing intents and BEFORE the
+  owner-lock gate only if they reduce capability; everything else sits behind the gate.
+- Biometric/wake files never enter git: add new paths to .gitignore AND test_gitignore.

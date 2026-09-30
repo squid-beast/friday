@@ -46,8 +46,14 @@ One rule per layer, each machine-enforced:
 
 | Feature | Modules | Test cases |
 |---|---|---|
-| Routing (utterance → node) | brain/graph.py, brain/nodes/router.py (echoed tool name ⇒ ops) | test_router, test_graph, evals/router_cases.yaml (40 vs real model, ≥90%), evals/tool_cases.yaml + test_tool_eval (tool selection, every tool covered, ≥90%) |
+| Routing (utterance → node) | brain/graph.py, brain/nodes/router.py (echoed tool name ⇒ ops) | test_router, test_graph, evals/router_cases.yaml (44 vs real model, ≥90%), evals/tool_cases.yaml + test_tool_eval (tool selection, every tool covered, ≥90%) |
 | Conversation + persona | brain/nodes/chat.py, config/persona.md | test_nodes (16), test_agent (12) |
+| Multi-provider LLM | adapters/llm.py (dispatch, per-loop client cache), adapters/llm_openai.py (openai/openrouter/gemini/compatible), config/providers.py (active keys for status + doctor) | test_llm, test_llm_providers (11 — base_url per provider, compat key, Claude ids refused) |
+| Mood engine | brain/mood.py (5 dims, 6h decay, real triggers), brain/mood_sense.py (audit + calendar + fresh facts) | test_mood (14 — kills reset, declines ignored, word-bounded facts) |
+| Emotional voice | voice/emotion.py (pure `style_for`, safety gate), voice/styling.py (line kinds, hold/release), adapters/tts.py (cartesia/openai/fishaudio) | test_emotion (7, TDD gate), test_styling (10), test_adapters |
+| Buddy tools | adapters/vault_plan.py (today_plan), adapters/mac_actions.py (open_and_search), integrations/day_summary.py (send_summary → Friday-owned n8n) | test_buddy_actions (9), test_buddy_proactive |
+| Proactive check-ins | scripts/proactive_checkin.py, brain/checkin.py, brain/pending_question.py, launchd/com.friday.checkin.plist | test_buddy_proactive (11), test_checkin |
+| Only-my-voice (mic only) | voice/owner_lock.py (per-turn gate in llm_node), adapters/voiceprint.py (CAM++ ONNX), voice/session.py (wake privacy, preemptive off), scripts/enroll_voice.py | test_owner_lock (11, TDD), test_voiceprint (6, skipped without model), test_session (6), test_status_api (three-state lock) |
 | Vault brain (his notes) | adapters/vault.py, brain/nodes/vault.py | test_vault_allowlist (11 — escapes/symlinks refused), test_nodes |
 | Long-term memory | adapters/memory.py, brain/nodes/memory_writer.py | test_memory, test_nodes (extraction gate cases) |
 | Ops + spoken gates | brain/nodes/ops.py, brain/confirm.py, adapters/n8n.py, config/tools.py | test_ops_node (10), test_confirm_gate (8), test_pin_gate (9), test_tools_registry (5), L2 n8n contract (9), L4 registry_risks |
@@ -68,8 +74,9 @@ One rule per layer, each machine-enforced:
 | Phone bridge | integrations/ask.py | test_ask_bridge (7 — kill phrases pre-graph) |
 | Resilience + doctor | every node's failure branch, scripts/healthcheck.py | test_fallbacks (10), test_healthcheck, test_healthcheck_n8n (active POST paths, pagination) |
 | UI design system | ui/src (14 files) | test_ui (12 — tokens, computed WCAG, 44px, a11y, zero-external, Svelte contracts) |
-| Auto-start | launchd/com.friday.*.plist (4 core) + launchd/on-demand/<group>/ (phone: `make phone-voice[-off]`), scripts/install_launchd.sh | test_launchd (per-plist parse, KeepAlive law), test_install_launchd (real script, fake HOME + stub launchctl) |
-| Safety net | scripts/snapshot.sh, config/settings.py | test_snapshot (rm-escape regression), test_settings |
+| Auto-start | launchd/com.friday.*.plist (5 core incl. checkin) + launchd/on-demand/<group>/ (phone: `make phone-voice[-off]`; tunnel: `make tunnel[-off]`), scripts/install_launchd.sh | test_launchd (per-plist parse, KeepAlive law), test_install_launchd (real script, fake HOME + stub launchctl) |
+| Safety net | scripts/snapshot.sh, config/settings.py, .gitignore (biometrics + wake samples never committed) | test_snapshot (rm-escape regression), test_settings, test_gitignore |
+| Public deploy | docs/DEPLOY.md, launchd/on-demand/tunnel/com.friday.tunnel.plist (Cloudflare Tunnel + Access) | test_launchd (tunnel plist parses) |
 | THE DEMO | all of the above | scenario/test_demo_script (steps 2–7, one thread, gate mid-demo) |
 
 ## 3 · Official coding standards (enforced, not aspirational)

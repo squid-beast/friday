@@ -130,3 +130,21 @@ def test_tts_factory_builds_openai_and_fish(monkeypatch) -> None:
     assert fishaudio.TTS.call_args.kwargs == {"api_key": "f-k", "model": "s1",
                                               "voice_id": "voice-1"}
     get_settings.cache_clear()
+
+
+def test_dynamic_tool_failure_apology_is_flat() -> None:
+    from brain.nodes.ops import TOOL_FAILED
+
+    line = TOOL_FAILED.format("send_summary")
+    assert _styler("fishaudio", mood=("proud", 0.9, 0.1)).line(line, "reply") == line
+
+
+def test_openai_tone_stays_neutral_until_gated_speech_has_played() -> None:
+    tts = MagicMock()
+    s = _styler("openai", tts)
+    s.line("That will run x. Shall I proceed, sir?", "confirm")  # still synthesizing...
+    s.line("How did you sleep, sir?", "checkin")  # ...prepared meanwhile
+    assert tts.update_options.call_args.kwargs["instructions"] == NEUTRAL_INSTRUCTIONS
+    s.release()  # back to listening
+    s.line("How did you sleep, sir?", "checkin")
+    assert tts.update_options.call_args.kwargs["instructions"] != NEUTRAL_INSTRUCTIONS

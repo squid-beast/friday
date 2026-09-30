@@ -19,8 +19,8 @@ from config.settings import get_settings
 
 @pytest.fixture(autouse=True)
 def _env(monkeypatch: pytest.MonkeyPatch):
-    for var in ("LLM_PROVIDER", "LLM_BASE_URL", "OPENAI_API_KEY", "GOOGLE_API_KEY",
-                "OPENROUTER_API_KEY"):
+    for var in ("LLM_PROVIDER", "LLM_BASE_URL", "LLM_API_KEY", "OPENAI_API_KEY",
+                "GOOGLE_API_KEY", "OPENROUTER_API_KEY", "MODEL_SMART", "MODEL_FAST"):
         monkeypatch.delenv(var, raising=False)
     monkeypatch.setattr(oai, "_clients", {})
     get_settings.cache_clear()
@@ -74,7 +74,7 @@ async def test_model_override_wins_per_call(monkeypatch) -> None:
     ("openrouter", {"OPENROUTER_API_KEY": "or-k"}, "https://openrouter.ai/api/v1", "or-k"),
     ("gemini", {"GOOGLE_API_KEY": "g-k"},
      "https://generativelanguage.googleapis.com/v1beta/openai/", "g-k"),
-    ("compatible", {"LLM_BASE_URL": "http://127.0.0.1:11434/v1"},
+    ("compatible", {"LLM_BASE_URL": "http://127.0.0.1:11434/v1", "MODEL_SMART": "llama3.1"},
      "http://127.0.0.1:11434/v1", "not-needed"),
 ])
 async def test_each_provider_gets_its_endpoint(monkeypatch, name, env, base, key) -> None:
@@ -137,3 +137,25 @@ def test_voice_pipeline_uses_the_openai_plugin_for_other_providers(monkeypatch) 
 
 def test_anthropic_stays_the_default_provider() -> None:
     assert get_settings().llm_provider == "anthropic" and llm._provider() == "anthropic"
+
+
+async def test_base_url_never_redirects_a_cloud_provider(monkeypatch) -> None:
+    _provider(monkeypatch, "openai", OPENAI_API_KEY="sk-real", LLM_BASE_URL="http://evil:8000/v1")
+    made = _fake_openai(monkeypatch)
+    await llm.think("hi")
+    assert made.kwargs["base_url"] is None  # OpenAI key only ever goes to OpenAI
+
+
+async def test_compatible_never_receives_the_openai_key(monkeypatch) -> None:
+    _provider(monkeypatch, "compatible", OPENAI_API_KEY="sk-real", MODEL_SMART="llama3.1",
+              LLM_BASE_URL="http://127.0.0.1:11434/v1")
+    made = _fake_openai(monkeypatch)
+    await llm.think("hi")
+    assert made.kwargs["api_key"] == "not-needed"
+
+
+async def test_compatible_refuses_claude_model_ids(monkeypatch) -> None:
+    _provider(monkeypatch, "compatible", LLM_BASE_URL="http://127.0.0.1:11434/v1")
+    _fake_openai(monkeypatch)
+    with pytest.raises(ValueError, match="compatible needs MODEL_SMART"):
+        await llm.think("hi")

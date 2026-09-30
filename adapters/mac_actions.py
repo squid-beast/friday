@@ -28,10 +28,10 @@ _SITE_WORDS = "|".join(_SITES)
 _SEARCH = [
     re.compile(rf"\b(?:search|look up|find)\s+(?:on\s+)?({_SITE_WORDS})\s+for\s+(.+)", re.I),
     re.compile(rf"\b(?:search(?: for)?|look up|find)\s+(.+?)\s+on\s+({_SITE_WORDS})\b", re.I),
-    re.compile(r"\b(google)\s+(.+)", re.I),
+    re.compile(r"^\s*(google)\s+(.+)", re.I),  # "google X" only as the command itself
     re.compile(r"\b(?:search(?: the web)?(?: for)?|look up)\s+(.+)", re.I),
 ]
-_OPEN = re.compile(r"\b(?:open|launch|start)\s+(?:up\s+)?(?:the\s+|my\s+)?(.+?)(?:\s+app)?[.!?]*$",
+_OPEN = re.compile(r"\b(?:open|launch|start)\s+(?:up\s+)?(?:the\s+)?(.+?)(?:\s+app)?[.!?]*$",
                    re.I)
 
 
@@ -73,15 +73,19 @@ def _open(args: list[str], run=subprocess.run) -> bool:
 
 async def open_or_search(_arg: str, utterance: str, *, run=subprocess.run,
                          apps=installed_apps) -> str:
+    """An installed app named after open/launch/start wins ("open Google Chrome" opens
+    Chrome); otherwise a search; "my apps"/"my notes" belong to their own tools."""
+    m = _OPEN.search(utterance)
+    name = m.group(1).strip() if m else ""
+    if name and not re.match(r"(?i)my\b", name):
+        app = resolve_app(name, await asyncio.to_thread(apps))
+        if app:
+            ok = await asyncio.to_thread(_open, ["-a", app], run)
+            return f"opened {app}" if ok else f"{app} wouldn't open"
     url = search_url(utterance)
     if url:
         ok = await asyncio.to_thread(_open, [url], run)
         return f"opened the search: {url}" if ok else "the browser wouldn't open the search"
-    m = _OPEN.search(utterance)
-    if not m:
-        return "tell me an app to open or something to search for"
-    app = resolve_app(m.group(1), await asyncio.to_thread(apps))
-    if app is None:
-        return f"I can't find an installed app called '{m.group(1).strip()}'"
-    ok = await asyncio.to_thread(_open, ["-a", app], run)
-    return f"opened {app}" if ok else f"{app} wouldn't open"
+    if name:
+        return f"I can't find an installed app called '{name}'"
+    return "tell me an app to open or something to search for"

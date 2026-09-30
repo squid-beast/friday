@@ -5,8 +5,9 @@ The agent says what KIND of line it is (reply / greeting / checkin, or a gated
 kind: kill / cut / confirm / pin / refusal / apology); canned safety constants
 from the brain are recognised and gated even when they arrive as a plain reply.
 voice/emotion.py decides whether the line may carry the mood; this module then
-applies it: Fish gets an inline tag, OpenAI TTS gets tone instructions right
-before synthesis, Cartesia gets clean text. Failures fall back to flat speech.
+applies it: Fish gets an inline tag, OpenAI TTS gets tone instructions (a shared
+option, so after any flat line the tone stays neutral until the session is back to
+listening — release()), Cartesia gets clean text. Failures fall back to flat speech.
 """
 
 import logging
@@ -63,18 +64,31 @@ class Styler:
         self._mood_now = mood_now
         self._enabled = get_settings().fish_emotion_enabled if enabled is None else enabled
         self._gated = _gated_lines()
+        from brain.nodes.ops import TOOL_FAILED
+
+        self._failed_prefix = TOOL_FAILED.split("{}")[0]  # dynamic tool-failure apology
+        self._hold = False  # a gated line may still be synthesizing: stay flat until release()
 
     def kind_of(self, text: str, default: str = "reply") -> str:
-        return self._gated.get(text.strip(), default)
+        t = text.strip()
+        return "apology" if t.startswith(self._failed_prefix) else self._gated.get(t, default)
+
+    def release(self) -> None:
+        """The session went back to listening: gated speech has finished playing."""
+        self._hold = False
 
     def line(self, text: str, kind: str = "reply") -> str:
         try:
             provider = self._provider()
             style = None
-            if self._enabled:
+            kind = self.kind_of(text, kind)
+            if kind not in emotion.STYLED_KINDS:
+                # OpenAI tone is a SHARED option applied at synthesis time: once a flat line
+                # is queued, keep everything flat until it has played (fail toward flat).
+                self._hold = True
+            elif self._enabled and not self._hold:
                 named, intensity, concern = self._mood_now()
-                style = emotion.style_for(named, intensity, concern=concern,
-                                          kind=self.kind_of(text, kind))
+                style = emotion.style_for(named, intensity, concern=concern, kind=kind)
             if provider == "openai" and self._tts is not None:
                 self._tts.update_options(instructions=emotion.instructions_for(style))
             return emotion.decorate(text, style, provider)

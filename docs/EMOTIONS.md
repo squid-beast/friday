@@ -11,24 +11,33 @@ Two-layer state, persisted in `MOOD_PATH` (default `<FRIDAY_STATE_DIR>/db/mood.j
 2. Named moods derived from dimensions each turn (never stored directly):
    proud, worried, irritated, delighted, sheepish, protective, content, weary(late-night)
 
-## Event -> emotion triggers (rules, not LLM guesses)
-| Event (from audit/session log) | Effect |
+## Event -> emotion triggers (rules, not LLM guesses) — as implemented (brain/mood.py)
+| Signal (source) | Effect |
 |---|---|
-| Tool success / demo step passes | confidence+ valence+ (pride) |
-| Own failure (adapter error, wrong answer corrected) | confidence- (sheepish), apology once |
-| Interrupted repeatedly / ignored mid-reply | warmth- briefly (clipped politeness) |
-| Sir works past 1am / skips gym-food routines (vault signals) | concern+ (worry lines) |
-| Kill command | neutral instantly; warmth unchanged (never resentful) |
-| Long absence then return | warmth+ ("Good to have you back, sir.") |
-| Elegant solution / good news in vault | valence+ (delight) |
-| Deadline within 24h (calendar/n8n signal) | arousal+ concern+ (crisper replies) |
+| Tool run succeeded (audit `tool` row) | confidence +0.08, valence +0.06 |
+| Tool failed — Friday's own failure (`result` starts "failed") | confidence −0.15, valence −0.05 |
+| Sir declined a gate ("aborted": no yes / wrong PIN) | nothing — not Friday's failure |
+| Real kill: spoken "stand down" (`kill_command`) or daemon `spoken_kill` / `external_kill` | dimensions reset to 0.5, **warmth kept** (never resentful) |
+| Session ended by silence / agent exit (`stand_down` other reasons) | nothing — the feeling just decays |
+| Recent fact (≤ 48h) about poor sleep | concern +0.2, warmth +0.05 |
+| Recent fact about a deadline | arousal +0.12, concern +0.15 |
+| Recent fact about a win (shipped, got the offer, closed a deal…) | valence +0.15, warmth +0.05 |
+| ≥ 5 calendar events today | arousal +0.1 |
+| First wake between 00:00 and 05:00 | concern +0.15, arousal −0.1 |
+| Back after ≥ 48h away | warmth +0.15 |
+
+Planned, NOT implemented: interrupted/ignored mid-reply → warmth−; deadline signals from
+calendar titles or n8n; "apology once" bookkeeping; routine tracking (gym/food).
+Fact patterns are word-bounded ("won't" is not a win, "retired" is not tiredness) and
+context signals apply at most once per day.
 
 ## Where the signals come from (brain/mood_sense.py)
 - Every turn (voice + phone/API text): audit rows since the last look — tool success /
-  failure, stand-downs (kill -> neutral). One sqlite read.
-- Once per day, at the first wake: remembered facts matching sleep / deadline / win
-  patterns, today's calendar load (>=5 events = busy day), late-night hour (00-05),
-  and absence >= 48h (warmth+). Once-a-day so repeated wakes can't ratchet a feeling.
+  failure and REAL kills only (see the table). One sqlite read.
+- Once per day, at the first wake: facts remembered in the LAST 48 HOURS matching sleep /
+  deadline / win patterns (facts are timestamped; older ones never fire), today's calendar
+  load (>=5 events = busy day), late-night hour (00-05), and absence >= 48h (warmth+).
+  Once-a-day so repeated wakes can't ratchet a feeling.
 - Decay: half-life 6h toward 0.5 — nothing persists a day without fresh cause.
 
 ## How mood reaches the words and the voice
@@ -38,7 +47,9 @@ Two-layer state, persisted in `MOOD_PATH` (default `<FRIDAY_STATE_DIR>/db/mood.j
   cuts, confirmations, PIN requests, refusals and apologies are ALWAYS flat, and so is
   everything while concern >= 0.7. Otherwise: Fish Audio S1 gets one inline tag on the
   first chunk ("(worried) You skipped sleep, sir."), OpenAI gpt-4o-mini-tts gets tone
-  instructions for that line, Cartesia never sees a tag (stray tags stripped).
+  instructions for that line (a shared option: after any flat line, tone stays neutral
+  until the session is back to listening), Cartesia never sees a tag (stray tags stripped).
+  Dynamic tool-failure apologies ("I couldn't run X, sir.") are gated too.
 - `FISH_EMOTION_ENABLED=false` turns voice styling off for every provider.
 
 ## Guardrails (non-negotiable)

@@ -3,9 +3,9 @@
 Build sir's voiceprint for the per-turn owner-voice lock (Phase 5) from HIS OWN
 16kHz recordings — the wake takes (scripts/record_wakeword.py), the normal-speech
 clips (scripts/record_voice_verifier.py), and any extra reads in voice/enroll/.
-Writes ONE L2-normalised mean embedding (VOICEPRINT_PATH, gitignored) and
-prints how each clip scores against it, to help choose VOICEPRINT_THRESHOLD.
-Then set VOICE_LOCK_TURNS=true and restart the killswitch.
+Writes ONE L2-normalised mean embedding of the VOICED audio (VOICEPRINT_PATH,
+gitignored) — the same trim the runtime lock scores — and prints held-out
+(leave-one-out) scores to help choose VOICEPRINT_THRESHOLD.
 
 Run: uv run python -m scripts.enroll_voice
 """
@@ -33,14 +33,18 @@ def main(argv: list[str] | None = None, *, root: Path = _REPO) -> int:
     if len(wavs) < 10:
         print(f"need at least 10 recordings of your voice; found {len(wavs)} in {SOURCES}")
         return 1
+    embeddings = voiceprint.clip_embeddings(wavs, s.voiceprint_model_path)
     out = voiceprint.enroll(wavs, s.voiceprint_model_path, s.voiceprint_path)
-    scores = [voiceprint.score(voiceprint.load_wav(p), s.voiceprint_path,
-                               s.voiceprint_model_path) for p in wavs]
-    low, median = float(np.min(scores)), float(np.median(scores))
-    print(f"voiceprint -> {out} ({len(wavs)} clips)")
-    print(f"your clips vs the print: min {low:.2f}, median {median:.2f}")
-    print(f"suggested VOICEPRINT_THRESHOLD ≈ {max(0.3, low - 0.05):.2f} "
-          "(then test with a friend's voice: it must score BELOW it)")
+    scores = voiceprint.leave_one_out(embeddings)  # held-out: how YOU will score at runtime
+    low, p10 = float(np.min(scores)), float(np.percentile(scores, 10))
+    print(f"voiceprint -> {out} ({len(embeddings)} usable clips of {len(wavs)})")
+    print(f"your held-out clips vs the print: min {low:.2f}, 10th percentile {p10:.2f}, "
+          f"median {float(np.median(scores)):.2f}")
+    print(f"suggested VOICEPRINT_THRESHOLD ≈ {max(0.3, p10 - 0.05):.2f} — then have a friend "
+          "speak: they must be refused")
+    print("apply: set VOICE_LOCK_TURNS=true, restart the killswitch "
+          "(launchctl kickstart -k gui/$(id -u)/com.friday.killswitch) and, if phone voice "
+          "is on, `make phone-voice` again (the worker reads .env only at start)")
     return 0
 
 

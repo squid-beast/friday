@@ -8,10 +8,13 @@ Setup: Mac awake, menu-bar icon shows DORMANT. Room mic distance ~2m. Phone time
 | 2 | "What did I quote the Receivly client last month?" | Correct answer from leos-brain vault, <= 3 sentences | Vault brain |
 | 3 | "Remember: demo day was today and it went clean." | "Noted, sir." (fact lands in memory) | Memory write |
 | 4 | "What's the weather today?" | Live Open-Meteo conditions, spoken | Local tool (safe) |
-| 5 | "Put lunch with Sam on my calendar tomorrow at noon." | "Shall I proceed, sir?" -> you: "Yes." -> event appears in Calendar.app | Ops + confirm gate |
+| 5 | "Put lunch with Sam on my calendar tomorrow at noon." | "Shall I proceed, sir?" -> you: "Yes, go ahead." -> event appears in Calendar.app | Ops + confirm gate |
 | 6 | "How's my job search going?" | Latest batch counts + what awaits you, from ~/Downloads/Jobs | Jobs command center |
 | 7 | "Play some music on Spotify." | Spotify starts playing | Mac control |
 | 8 | "Stand down." | Standing-down chime, menu-bar -> DORMANT | Kill path |
+
+With the owner-voice lock armed, a bare "Yes." (~0.4s of voice) is too short to verify —
+Friday asks again; "Yes, go ahead." verifies.
 
 Redefined 2026-09-29: the old steps (content pipeline, screen recall, camera) depended
 on features that were removed or parked. Rehearsed by machine in

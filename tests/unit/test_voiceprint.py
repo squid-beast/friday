@@ -60,3 +60,13 @@ def test_enroll_script_needs_enough_clips(tmp_path: Path) -> None:
     from scripts import enroll_voice
 
     assert enroll_voice.main([], root=tmp_path) == 1  # no recordings yet -> refuses
+
+
+def test_leave_one_out_scores_each_clip_against_the_others() -> None:
+    same = np.stack([voiceprint.embed(_speechy(1), MODEL) for _ in range(3)])
+    assert np.all(voiceprint.leave_one_out(same) > 0.95)
+
+
+def test_voiced_trim_drops_silence() -> None:
+    pcm = np.concatenate([np.zeros(16_000, np.float32), _speechy(1, 1.0)])
+    assert 15_000 < len(voiceprint.voiced(pcm)) <= 16_000
